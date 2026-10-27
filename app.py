@@ -215,8 +215,12 @@ def login_required(view):
     return wrapped
 
 
+@app.route("/login", methods=["GET", "POST"])
 @app.post("/api/login")
 def login():
+    if request.method == "GET":
+        return send_from_directory(BASE_DIR, "login.html")
+
     email = request.form.get("email", "").strip().lower()
     password = request.form.get("password", "")
     requested_role = request.form.get("role", "student")
@@ -856,8 +860,12 @@ def own_profile():
     return jsonify(dict(profile) if profile else None)
 
 
+@app.route("/registrar", methods=["GET", "POST"])
 @app.post("/api/profiles")
 def create_profile():
+    if request.method == "GET":
+        return send_from_directory(BASE_DIR, "perfil.html")
+
     required = ("name", "email", "career", "interest", "skills", "password")
     if any(not request.form.get(field, "").strip() for field in required):
         return jsonify({"error": "Completa todos los campos obligatorios."}), 400
