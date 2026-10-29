@@ -24,4 +24,18 @@
         <button type="button" class="role-tab selected" data-role="student">Alumno</button>
         <button type="button" class="role-tab" data-role="teacher">Personal UPOTec</button>
       </div>
-      <input type="hidden" name
+      <input type="hidden" name="role" value="student">
+      <label>Correo electrónico
+        <input name="email" type="email" required placeholder="ejemplo@gmail.com">
+      </label>
+      <label>Contraseña
+        <input name="password" type="password" required placeholder="Ingresa tu contraseña">
+      </label>
+      <button class="button login-button" type="submit">Iniciar sesión <span>→</span></button>
+      <p class="login-help">¿Aún no tienes perfil? <a href="/registrar">Regístrate como alumno</a></p>
+    </form>
+  </main>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="/script.js"></script>
+</body>
+</html>
