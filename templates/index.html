@@ -1,24 +1,23 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="UPOwork conecta a estudiantes de la Universidad Politécnica de Otzolotepec con oportunidades laborales.">
   <title>UPOwork | Inicio</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
-  <!-- ✅ Ruta corregida: busca en la carpeta static/ -->
+  <!-- ✅ Archivos directos en static/ -->
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
   <header class="site-header">
-    <!-- ✅ Logo: busca en static/ -->
     <a class="brand" href="/" aria-label="UPOwork, inicio">
       <img class="brand-logo" src="/upowork-logo.svg" alt="UPOwork">
     </a>
     <button class="menu-toggle" aria-label="Abrir menú" aria-expanded="false">☰</button>
     <nav class="main-nav" aria-label="Navegación principal">
-      <!-- ✅ Enlaces: apuntan a las rutas correctas del servidor -->
       <a class="active" href="/">Inicio</a>
       <a href="/registrar">Mi perfil</a>
       <a href="/empresas">Vacantes</a>
@@ -40,7 +39,10 @@
       <div class="hero-visual" aria-label="Ilustración de una estudiante preparando su perfil profesional">
         <div class="shape shape-back"></div>
         <div class="shape shape-mid"></div>
-        <div class="visual-card note-card"><span class="note-icon">CV</span><span>Perfil<br><strong>profesional</strong></span></div>
+        <div class="visual-card note-card">
+          <span class="note-icon">CV</span>
+          <span>Perfil<br><strong>profesional</strong></span>
+        </div>
         <div class="visual-card chart-card">
           <span class="chart-label">Información de tu perfil</span>
           <div class="profile-preview">
@@ -49,7 +51,10 @@
             <span>Interés <b>Vacantes</b></span>
           </div>
         </div>
-        <div class="person"><span class="person-head"></span><span class="person-body"></span></div>
+        <div class="person">
+          <span class="person-head"></span>
+          <span class="person-body"></span>
+        </div>
         <div class="hero-spark spark-one">✦</div>
         <div class="hero-spark spark-two">✦</div>
       </div>
@@ -137,7 +142,7 @@
       </span>
     </div>
   </footer>
-  <!-- ✅ Script: busca en static/ -->
+  <!-- ✅ Script directo en static/ -->
   <script src="/script.js"></script>
 </body>
 </html>
