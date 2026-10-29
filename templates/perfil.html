@@ -1,9 +1,99 @@
 <!doctype html>
 <html lang="es">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>UPOwork | Mi perfil</title><link rel="stylesheet" href="styles.css"></head>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UPOwork | Mi perfil</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
 <body>
-  <header class="site-header"><a class="brand" href="index.html"><img class="brand-logo" src="upowork-logo.svg" alt="UPOwork"></a><button class="menu-toggle" aria-label="Abrir menú" aria-expanded="false">☰</button><nav class="main-nav" aria-label="Navegación principal"><a href="index.html">Inicio</a><a class="active" href="perfil.html">Mi perfil</a><a href="empresas.html">Vacantes</a><a href="consejos.html">Consejos</a></nav><a class="button button-small header-cta" href="login.html">Iniciar sesión <span>→</span></a></header>
-  <main><section class="page-title section-shell"><p class="eyebrow">01 / Registro de alumno</p><h1>Comparte tus datos y tu <em>CV.</em></h1><p>Completa este formulario para que la universidad pueda considerar tu perfil en futuras oportunidades.</p></section>
-    <section class="content-section section-shell profile-page"><form id="profile-form" class="profile-form"><div class="form-intro"><span class="form-icon">✎</span><div><h3>Crea tu perfil y tu cuenta</h3><p>La información marcada con <b>*</b> es obligatoria.</p></div><span class="step-badge">Paso 1 de 2</span></div><div class="form-grid"><label>Nombre completo *<input name="name" required placeholder="Ej. María González"></label><label>Correo electrónico *<input type="email" name="email" required placeholder="ejemplo@gmail.com"></label><label>Carrera *<select name="career" required><option value="">Selecciona tu carrera</option><option>Ingeniería en Manufactura Avanzada BIS</option><option>Licenciatura en Administración BIS</option><option>Ingeniería Química BIS</option><option>Ingeniería Financiera BIS</option></select></label><label>¿Qué estás buscando? *<select name="interest" required><option value="">Selecciona una opción</option><option>Prácticas profesionales</option><option>Servicio social</option><option>Empleo</option><option>Prácticas y empleo</option></select></label><label>Contraseña *<input name="password" type="password" minlength="12" required placeholder="Mínimo 12 caracteres"></label><label class="full">Habilidades principales<textarea name="skills" rows="3" required placeholder="Ej. Excel, liderazgo, comunicación, Python..."></textarea></label><label class="file-field full">CV (opcional, PDF de máximo 5 MB) <input id="cv-file" name="cv" type="file" accept=".pdf,application/pdf" aria-describedby="cv-optional-note"><span class="file-drop"><span>↑</span><span><strong>Adjunta tu CV si lo deseas</strong> o haz clic para buscar</span><small id="file-name">Ningún archivo seleccionado</small></span></label><p class="field-note full" id="cv-optional-note">No necesitas subir un CV para crear tu cuenta. Puedes añadirlo después desde tu perfil.</p></div><aside class="privacy-note" aria-label="Aviso sobre tus datos personales"><strong>Antes de compartir tus datos</strong><p>Al crear tu cuenta, la información del formulario se guarda en UPOwork para que personal autorizado de la universidad pueda revisar tu perfil. El CV es opcional. La universidad solo podrá compartir tu perfil o CV con empresas para una oportunidad de vinculación conforme al consentimiento y al aviso de privacidad. Para postularte a una vacante externa, abrirás el portal de origen; UPOwork no enviará tus datos a ese portal.</p><a href="aviso-privacidad.html" target="_blank" rel="noopener">Lee el aviso de privacidad</a></aside><div class="form-footer"><label class="checkbox"><input name="privacy_consent" type="checkbox" value="1" required> Leí el <a href="aviso-privacidad.html" target="_blank" rel="noopener">aviso de privacidad</a> y autorizo el uso de mis datos para los fines de vinculación descritos.</label><button class="button" type="submit">Crear cuenta y guardar <span>→</span></button></div></form></section>
-  </main><footer><div class="section-shell footer-inner"><a class="brand" href="index.html"><img class="brand-logo" src="upowork-logo.svg" alt="UPOwork"></a><p>Diseñado para ayudar a nuestros compañeros a crecer de manera laboral.</p><span>© 2026 UPOwork · UPOTec</span></div></footer><div class="toast" id="toast" role="status" aria-live="polite"></div><script src="script.js"></script>
-</body></html>
+  <header class="site-header">
+    <a class="brand" href="/">
+      <img class="brand-logo" src="/upowork-logo.svg" alt="UPOwork">
+    </a>
+    <button class="menu-toggle" aria-label="Abrir menú" aria-expanded="false">☰</button>
+    <nav class="main-nav" aria-label="Navegación principal">
+      <a href="/">Inicio</a>
+      <a class="active" href="/registrar">Mi perfil</a>
+      <a href="/empresas">Vacantes</a>
+      <a href="/consejos">Consejos</a>
+    </nav>
+    <a class="button button-small header-cta" href="/login">Iniciar sesión <span>→</span></a>
+  </header>
+  <main>
+    <section class="page-title section-shell">
+      <p class="eyebrow">01 / Registro de alumno</p>
+      <h1>Comparte tus datos y tu <em>CV.</em></h1>
+      <p>Completa este formulario para que la universidad pueda considerar tu perfil en futuras oportunidades.</p>
+    </section>
+    <section class="content-section section-shell profile-page">
+      <form id="profile-form" class="profile-form">
+        <div class="form-intro">
+          <span class="form-icon">✎</span>
+          <div>
+            <h3>Crea tu perfil y tu cuenta</h3>
+            <p>La información marcada con <b>*</b> es obligatoria.</p>
+          </div>
+          <span class="step-badge">Paso 1 de 2</span>
+        </div>
+        <div class="form-grid">
+          <label>Nombre completo *<input name="name" required placeholder="Ej. María González"></label>
+          <label>Correo electrónico *<input type="email" name="email" required placeholder="ejemplo@gmail.com"></label>
+          <label>Carrera *
+            <select name="career" required>
+              <option value="">Selecciona tu carrera</option>
+              <option>Ingeniería en Manufactura Avanzada BIS</option>
+              <option>Licenciatura en Administración BIS</option>
+              <option>Ingeniería Química BIS</option>
+              <option>Ingeniería Financiera BIS</option>
+            </select>
+          </label>
+          <label>¿Qué estás buscando? *
+            <select name="interest" required>
+              <option value="">Selecciona una opción</option>
+              <option>Prácticas profesionales</option>
+              <option>Servicio social</option>
+              <option>Empleo</option>
+              <option>Prácticas y empleo</option>
+            </select>
+          </label>
+          <label>Contraseña *<input name="password" type="password" minlength="12" required placeholder="Mínimo 12 caracteres"></label>
+          <label class="full">Habilidades principales<textarea name="skills" rows="3" required placeholder="Ej. Excel, liderazgo, comunicación, Python..."></textarea></label>
+          <label class="file-field full">CV (opcional, PDF de máximo 5 MB)
+            <input id="cv-file" name="cv" type="file" accept=".pdf,application/pdf" aria-describedby="cv-optional-note">
+            <span class="file-drop">
+              <span>↑</span>
+              <span><strong>Adjunta tu CV si lo deseas</strong> o haz clic para buscar</span>
+              <small id="file-name">Ningún archivo seleccionado</small>
+            </span>
+          </label>
+          <p class="field-note full" id="cv-optional-note">No necesitas subir un CV para crear tu cuenta. Puedes añadirlo después desde tu perfil.</p>
+        </div>
+        <aside class="privacy-note" aria-label="Aviso sobre tus datos personales">
+          <strong>Antes de compartir tus datos</strong>
+          <p>Al crear tu cuenta, la información del formulario se guarda en UPOwork para que personal autorizado de la universidad pueda revisar tu perfil. El CV es opcional. La universidad solo podrá compartir tu perfil o CV con empresas para una oportunidad de vinculación conforme al consentimiento y al aviso de privacidad. Para postularte a una vacante externa, abrirás el portal de origen; UPOwork no enviará tus datos a ese portal.</p>
+          <a href="/aviso-privacidad" target="_blank" rel="noopener">Lee el aviso de privacidad</a>
+        </aside>
+        <div class="form-footer">
+          <label class="checkbox">
+            <input name="privacy_consent" type="checkbox" value="1" required>
+            Leí el <a href="/aviso-privacidad" target="_blank" rel="noopener">aviso de privacidad</a> y autorizo el uso de mis datos para los fines de vinculación descritos.
+          </label>
+          <button class="button" type="submit">Crear cuenta y guardar <span>→</span></button>
+        </div>
+      </form>
+    </section>
+  </main>
+  <footer>
+    <div class="section-shell footer-inner">
+      <a class="brand" href="/">
+        <img class="brand-logo" src="/upowork-logo.svg" alt="UPOwork">
+      </a>
+      <p>Diseñado para ayudar a nuestros compañeros a crecer de manera laboral.</p>
+      <span>© 2026 UPOwork · UPOTec</span>
+    </div>
+  </footer>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="/script.js"></script>
+</body>
+</html>
