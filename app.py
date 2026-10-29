@@ -226,24 +226,19 @@ def sugerencias():
 def terminos_de_uso():
     return render_template('terminos-de-uso.html')
 
-# Archivos estáticos
-@app.get("/css/<path:filename>")
-def serve_css(filename):
-    return send_from_directory("static/css", filename)
+# ========== ARCHIVOS ESTÁTICOS — CORREGIDO ✅ ==========
+@app.get("/styles.css")
+def serve_css():
+    return send_from_directory(BASE_DIR, "styles.css")
 
-@app.get("/js/<path:filename>")
-def serve_js(filename):
-    return send_from_directory("static/js", filename)
+@app.get("/script.js")
+def serve_js():
+    return send_from_directory(BASE_DIR, "script.js")
 
-@app.get("/images/<path:filename>")
-def serve_images(filename):
-    return send_from_directory("static/images", filename)
+@app.get("/upowork-logo.svg")
+def serve_logo():
+    return send_from_directory(BASE_DIR, "upowork-logo.svg")
 
 @app.get("/uploads/<path:filename>")
 def serve_uploads(filename):
-    return send_from_directory("static/uploads", filename)
-
-initialize_database()
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
+    return send_from_directory(UPLOADS, filename) 5000)))
