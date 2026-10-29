@@ -4,18 +4,27 @@
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="UPOwork conecta a estudiantes de la Universidad Politécnica de Otzolotepec con oportunidades laborales.">
   <title>UPOwork | Inicio</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+  <!-- ✅ Ruta corregida: busca en la carpeta static/ -->
+  <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
   <header class="site-header">
-    <a class="brand" href="index.html" aria-label="UPOwork, inicio"><img class="brand-logo" src="upowork-logo.svg" alt="UPOwork"></a>
+    <!-- ✅ Logo: busca en static/ -->
+    <a class="brand" href="/" aria-label="UPOwork, inicio">
+      <img class="brand-logo" src="/upowork-logo.svg" alt="UPOwork">
+    </a>
     <button class="menu-toggle" aria-label="Abrir menú" aria-expanded="false">☰</button>
     <nav class="main-nav" aria-label="Navegación principal">
-      <a class="active" href="index.html">Inicio</a><a href="perfil.html">Mi perfil</a><a href="empresas.html">Vacantes</a><a href="consejos.html">Consejos</a>
+      <!-- ✅ Enlaces: apuntan a las rutas correctas del servidor -->
+      <a class="active" href="/">Inicio</a>
+      <a href="/registrar">Mi perfil</a>
+      <a href="/empresas">Vacantes</a>
+      <a href="/consejos">Consejos</a>
     </nav>
-    <a class="button button-small header-cta" href="login.html">Iniciar sesión <span>→</span></a>
+    <a class="button button-small header-cta" href="/login">Iniciar sesión <span>→</span></a>
   </header>
   <main>
     <section class="hero section-shell">
@@ -23,24 +32,112 @@
         <p class="eyebrow"><span class="eyebrow-dot"></span> Universidad Politécnica de Otzolotepec</p>
         <h1>Encuentra una oportunidad para <em>empezar.</em></h1>
         <p class="hero-text">UPOwork es el espacio de la UPOTec para crear tu perfil y encontrar vacantes externas relacionadas con tu carrera, prácticas, servicio social o primer empleo.</p>
-        <div class="hero-actions"><a class="button" href="perfil.html">Crear mi perfil <span>↗</span></a><a class="text-link" href="empresas.html">Ver vacantes <span>→</span></a></div>
+        <div class="hero-actions">
+          <a class="button" href="/registrar">Crear mi perfil <span>↗</span></a>
+          <a class="text-link" href="/empresas">Ver vacantes <span>→</span></a>
+        </div>
       </div>
-      <div class="hero-visual" aria-label="Ilustración de una estudiante preparando su perfil profesional"><div class="shape shape-back"></div><div class="shape shape-mid"></div><div class="visual-card note-card"><span class="note-icon">CV</span><span>Perfil<br><strong>profesional</strong></span></div><div class="visual-card chart-card"><span class="chart-label">Información de tu perfil</span><div class="profile-preview"><span>CV <b>PDF</b></span><span>Carrera <b>UPOTec</b></span><span>Interés <b>Vacantes</b></span></div></div><div class="person"><span class="person-head"></span><span class="person-body"></span></div><div class="hero-spark spark-one">✦</div><div class="hero-spark spark-two">✦</div></div>
+      <div class="hero-visual" aria-label="Ilustración de una estudiante preparando su perfil profesional">
+        <div class="shape shape-back"></div>
+        <div class="shape shape-mid"></div>
+        <div class="visual-card note-card"><span class="note-icon">CV</span><span>Perfil<br><strong>profesional</strong></span></div>
+        <div class="visual-card chart-card">
+          <span class="chart-label">Información de tu perfil</span>
+          <div class="profile-preview">
+            <span>CV <b>PDF</b></span>
+            <span>Carrera <b>UPOTec</b></span>
+            <span>Interés <b>Vacantes</b></span>
+          </div>
+        </div>
+        <div class="person"><span class="person-head"></span><span class="person-body"></span></div>
+        <div class="hero-spark spark-one">✦</div>
+        <div class="hero-spark spark-two">✦</div>
+      </div>
     </section>
-    <section class="process-note section-shell"><div><p class="eyebrow">¿Cómo funciona?</p><h2>Un solo lugar para buscar y compartir oportunidades.</h2><p>Registra tu perfil y consulta vacantes externas seleccionadas para las carreras UPOTec. El CV es opcional y cada oferta enlaza a su publicación original.</p></div><a class="button button-outline" href="perfil.html">Registrar mis datos <span>→</span></a></section>
+    <section class="process-note section-shell">
+      <div>
+        <p class="eyebrow">¿Cómo funciona?</p>
+        <h2>Un solo lugar para buscar y compartir oportunidades.</h2>
+        <p>Registra tu perfil y consulta vacantes externas seleccionadas para las carreras UPOTec. El CV es opcional y cada oferta enlaza a su publicación original.</p>
+      </div>
+      <a class="button button-outline" href="/registrar">Registrar mis datos <span>→</span></a>
+    </section>
     <section class="visual-story section-shell" aria-labelledby="visual-story-title">
-      <div class="visual-story-heading"><p class="eyebrow">Alumnos, universidad y empresas</p><h2 id="visual-story-title">La vinculación empieza<br><em>con tu perfil.</em></h2><p>La universidad revisa oportunidades de empleo y prácticas y las comparte con estudiantes de las carreras UPOTec.</p></div>
+      <div class="visual-story-heading">
+        <p class="eyebrow">Alumnos, universidad y empresas</p>
+        <h2 id="visual-story-title">La vinculación empieza<br><em>con tu perfil.</em></h2>
+        <p>La universidad revisa oportunidades de empleo y prácticas y las comparte con estudiantes de las carreras UPOTec.</p>
+      </div>
       <div class="connection-scene">
-        <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><span class="connection-line line-one"></span><span class="connection-line line-two"></span>
-        <div class="scene-card scene-student"><span class="scene-icon student-icon">✦</span><strong>Alumno</strong><small>Comparte tu talento</small><i class="scene-dot"></i></div>
-        <div class="scene-card scene-school"><span class="scene-icon school-icon">⌂</span><strong>UPOTec</strong><small>Conecta oportunidades</small><i class="scene-dot"></i></div>
-        <div class="scene-card scene-company"><span class="scene-icon company-icon">↗</span><strong>Empresa</strong><small>Encuentra talento</small><i class="scene-dot"></i></div>
-        <span class="floating-star star-a">✦</span><span class="floating-star star-b">✦</span><span class="floating-star star-c">✦</span>
+        <div class="orbit orbit-one"></div>
+        <div class="orbit orbit-two"></div>
+        <span class="connection-line line-one"></span>
+        <span class="connection-line line-two"></span>
+        <div class="scene-card scene-student">
+          <span class="scene-icon student-icon">✦</span>
+          <strong>Alumno</strong>
+          <small>Comparte tu talento</small>
+          <i class="scene-dot"></i>
+        </div>
+        <div class="scene-card scene-school">
+          <span class="scene-icon school-icon">⌂</span>
+          <strong>UPOTec</strong>
+          <small>Conecta oportunidades</small>
+          <i class="scene-dot"></i>
+        </div>
+        <div class="scene-card scene-company">
+          <span class="scene-icon company-icon">↗</span>
+          <strong>Empresa</strong>
+          <small>Encuentra talento</small>
+          <i class="scene-dot"></i>
+        </div>
+        <span class="floating-star star-a">✦</span>
+        <span class="floating-star star-b">✦</span>
+        <span class="floating-star star-c">✦</span>
       </div>
     </section>
-    <section class="home-links section-shell"><p class="eyebrow">Secciones de UPOwork</p><h2>Empieza por lo que necesitas.</h2><div class="home-link-grid"><a href="perfil.html"><span>01</span><h3>Crea tu perfil</h3><p>Registra tus datos y, si quieres, agrega tu CV para recibir recomendaciones.</p><b>Crear mi perfil →</b></a><a href="empresas.html"><span>02</span><h3>Explora oportunidades</h3><p>Consulta vacantes externas relacionadas con las carreras de la UPOTec.</p><b>Ver vacantes →</b></a><a href="consejos.html"><span>03</span><h3>Consulta los consejos</h3><p>Recomendaciones sencillas para preparar tu CV y presentarte a una entrevista.</p><b>Leer consejos →</b></a></div></section>
+    <section class="home-links section-shell">
+      <p class="eyebrow">Secciones de UPOwork</p>
+      <h2>Empieza por lo que necesitas.</h2>
+      <div class="home-link-grid">
+        <a href="/registrar">
+          <span>01</span>
+          <h3>Crea tu perfil</h3>
+          <p>Registra tus datos y, si quieres, agrega tu CV para recibir recomendaciones.</p>
+          <b>Crear mi perfil →</b>
+        </a>
+        <a href="/empresas">
+          <span>02</span>
+          <h3>Explora oportunidades</h3>
+          <p>Consulta vacantes externas relacionadas con las carreras de la UPOTec.</p>
+          <b>Ver vacantes →</b>
+        </a>
+        <a href="/consejos">
+          <span>03</span>
+          <h3>Consulta los consejos</h3>
+          <p>Recomendaciones sencillas para preparar tu CV y presentarte a una entrevista.</p>
+          <b>Leer consejos →</b>
+        </a>
+      </div>
+    </section>
   </main>
-  <footer><div class="section-shell footer-inner"><a class="brand" href="index.html"><img class="brand-logo" src="upowork-logo.svg" alt="UPOwork"></a><p>Diseñado para ayudar a nuestros compañeros a crecer de manera laboral.</p><span><a class="text-link" href="aviso-privacidad.html">Privacidad</a> · <a class="text-link" href="terminos-de-uso.html">Términos</a> · <a class="text-link" href="preguntas-frecuentes.html">Ayuda</a> · <a class="text-link" href="contacto.html">Contacto</a> · <a class="text-link" href="sugerencias.html">Sugerencias</a> · © 2026 UPOwork · UPOTec</span></div></footer>
-  <script src="script.js"></script>
+  <footer>
+    <div class="section-shell footer-inner">
+      <a class="brand" href="/">
+        <img class="brand-logo" src="/upowork-logo.svg" alt="UPOwork">
+      </a>
+      <p>Diseñado para ayudar a nuestros compañeros a crecer de manera laboral.</p>
+      <span>
+        <a class="text-link" href="/aviso-privacidad">Privacidad</a> ·
+        <a class="text-link" href="/terminos-de-uso">Términos</a> ·
+        <a class="text-link" href="/preguntas-frecuentes">Ayuda</a> ·
+        <a class="text-link" href="/contacto">Contacto</a> ·
+        <a class="text-link" href="/sugerencias">Sugerencias</a> ·
+        © 2026 UPOwork · UPOTec
+      </span>
+    </div>
+  </footer>
+  <!-- ✅ Script: busca en static/ -->
+  <script src="/script.js"></script>
 </body>
 </html>
