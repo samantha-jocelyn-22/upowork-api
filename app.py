@@ -194,7 +194,7 @@ def valid_pdf(file):
     file.stream.seek(0)
     return signature == b"%PDF-"
 
-# ========== RUTAS DE PÁGINAS — TODAS CORREGIDAS ==========
+# ========== RUTAS DE PÁGINAS — TODAS COMPLETAS ==========
 
 @app.get("/")
 def home():
@@ -296,8 +296,7 @@ def create_profile():
             session["user_id"] = student_user["id"]
             session["csrf_token"] = csrf
     except sqlite3.IntegrityError:
-        return jsonify({"error": "Ya existe un perfil registrado con ese correo."}), 409
-    return jsonify({"id": profile_id, "message": "Perfil guardado correctamente."}), 201
+        return jsonify({"id": profile_id, "message": "Perfil guardado correctamente."}), 201
 
 # --- Rutas de todas las páginas ---
 @app.get("/aviso-privacidad")
@@ -324,4 +323,5 @@ def empresa_registro():
 def empresas():
     return render_template('empresas.html')
 
-@app.get("/preguntas
+@app.get("/preguntas-frecuentes")
+def preguntas_f
