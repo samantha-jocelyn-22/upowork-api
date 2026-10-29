@@ -241,4 +241,10 @@ def serve_logo():
 
 @app.get("/uploads/<path:filename>")
 def serve_uploads(filename):
-    return send_from_directory(UPLOADS, filename) 5000)))
+    return send_from_directory(UPLOADS, filename)
+
+
+initialize_database()
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
