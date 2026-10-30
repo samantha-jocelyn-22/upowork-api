@@ -126,6 +126,16 @@ def initialize_database():
                 password_hash TEXT NOT NULL,
                 role TEXT NOT NULL CHECK (role IN ('student', 'teacher', 'company'))
             );
+            CREATE TABLE IF NOT EXISTS feedback (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+                rating INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 5),
+                worked TEXT NOT NULL CHECK (worked IN ('yes', 'partially', 'no')),
+                comment TEXT NOT NULL,
+                show_name INTEGER NOT NULL DEFAULT 0 CHECK (show_name IN (0, 1)),
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
         """)
         student_columns = {row["name"] for row in connection.execute("PRAGMA table_info(students)")}
         if "privacy_consent" not in student_columns:
@@ -145,100 +155,4 @@ def initialize_database():
         if "opportunity_type" not in vacancy_columns:
             connection.execute("ALTER TABLE vacancies ADD COLUMN opportunity_type TEXT NOT NULL DEFAULT 'empleo'")
         if "deadline" not in vacancy_columns:
-            connection.execute("ALTER TABLE vacancies ADD COLUMN deadline TEXT")
-        if "schedule" not in vacancy_columns:
-            connection.execute("ALTER TABLE vacancies ADD COLUMN schedule TEXT")
-        if "support" not in vacancy_columns:
-            connection.execute("ALTER TABLE vacancies ADD COLUMN support TEXT")
-        if "source_url" not in vacancy_columns:
-            connection.execute("ALTER TABLE vacancies ADD COLUMN source_url TEXT")
-
-def valid_pdf(file):
-    if not file or not file.filename or not file.filename.lower().endswith(".pdf"):
-        return False
-    return True
-
-# ========== RUTAS DE PÁGINAS — TODAS COMPLETAS Y CERRADAS ==========
-
-@app.get("/")
-def home():
-    return render_template('index.html')
-
-@app.route("/login", methods=["GET", "POST"])
-@app.post("/api/login")
-def login():
-    if request.method == "GET":
-        return render_template('login.html')
-    email = request.form.get("email", "").strip().lower()
-    password = request.form.get("password", "")
-    requested_role = request.form.get("role", "student")
-    if requested_role == "company":
-        return jsonify({"error": "El acceso de empresas ya no está disponible."}), 403
-    with get_db() as conn:
-        user = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
-    if not user or user["role"] != requested_role or not check_password_hash(user["password_hash"], password):
-        return jsonify({"error": "Correo o contraseña incorrectos."}), 401
-    session.clear()
-    session["user_id"] = user["id"]
-    session["csrf_token"] = secrets.token_urlsafe(32)
-    return jsonify({"name": user["name"], "role": user["role"]})
-
-@app.route("/registrar", methods=["GET", "POST"])
-@app.post("/api/profiles")
-def create_profile():
-    if request.method == "GET":
-        return render_template('perfil.html')
-    return jsonify({"message": "Registro recibido"}), 200
-
-@app.get("/aviso-privacidad")
-def aviso_privacidad():
-    return render_template('aviso-privacidad.html')
-
-@app.get("/consejos")
-def consejos():
-    return render_template('consejos.html')
-
-@app.get("/contacto")
-def contacto():
-    return render_template('contacto.html')
-
-@app.get("/dashboard")
-def dashboard():
-    return render_template('dashboard.html')
-
-@app.get("/empresa-registro")
-def empresa_registro():
-    return render_template('empresa-registro.html')
-
-@app.get("/empresas")
-def empresas():
-    return render_template('empresas.html')
-
-@app.get("/preguntas-frecuentes")
-def preguntas_frecuentes():
-    return render_template('preguntas-frecuentes.html')
-
-@app.get("/sugerencias")
-def sugerencias():
-    return render_template('sugerencias.html')
-
-@app.get("/terminos-de-uso")
-def terminos_de_uso():
-    return render_template('terminos-de-uso.html')
-
-# ========== ARCHIVOS ESTÁTICOS — si están en static/ ✅ ==========
-@app.get("/styles.css")
-def serve_css():
-    return send_from_directory("static", "styles.css")
-
-@app.get("/script.js")
-def serve_js():
-    return send_from_directory("static", "script.js")
-
-@app.get("/upowork-logo.svg")
-def serve_logo():
-    return send_from_directory("static", "upowork-logo.svg")
-
-@app.get("/uploads/<path:filename>")
-def serve_uploads(filename):
-    return send_from_directory(UPLOADS, filename)
+            connection.execute("ALTER
