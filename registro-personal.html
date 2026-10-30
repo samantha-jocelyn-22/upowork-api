@@ -1,18 +1,62 @@
 <!doctype html>
 <html lang="es">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>UPOwork | Registro de personal</title><link rel="stylesheet" href="styles.css"></head>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UPOwork | Registro de personal</title>
+  <!-- ✅ Ruta corregida -->
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
 <body class="login-page">
-  <header class="site-header"><a class="brand" href="index.html"><img class="brand-logo" src="upowork-logo.svg" alt="UPOwork"></a><a class="text-link" href="login.html">Iniciar sesión</a></header>
+  <header class="site-header">
+    <a class="brand" href="/">
+      <img class="brand-logo" src="/static/upowork-logo.svg" alt="UPOwork">
+    </a>
+    <a class="text-link" href="/login">Iniciar sesión</a>
+  </header>
   <main class="login-main section-shell">
-    <div class="login-heading"><p class="eyebrow">Acceso para personal autorizado</p><h1>Cuenta de<br><em>personal UPOTec.</em></h1><p>El código de invitación confirma que tienes autorización para administrar perfiles y publicar oportunidades.</p></div>
-    <form id="staff-registration-form" class="login-card">
-      <label>Nombre completo<input name="name" required maxlength="160" autocomplete="name" placeholder="Tu nombre"></label>
-      <label>Correo electrónico<input name="email" type="email" required autocomplete="email" placeholder="nombre@correo.com"></label>
-      <label>Contraseña<input name="password" type="password" required minlength="12" autocomplete="new-password" placeholder="Mínimo 12 caracteres"></label>
-      <label>Código privado de invitación<input name="invite_code" type="password" required autocomplete="off"></label>
-      <button class="button login-button" type="submit">Crear cuenta de personal <span>→</span></button>
-      <p class="login-help">Solicita el código a la administración de UPOwork. No lo compartas con alumnos ni personas externas.</p>
+    <div class="login-heading">
+      <p class="eyebrow">Acceso para personal autorizado</p>
+      <h1>Cuenta de<br><em>personal UPOTec.</em></h1>
+      <p>El código de invitación confirma que tienes autorización para administrar perfiles y publicar oportunidades.</p>
+    </div>
+    <!-- ✅ Formulario adaptado a rutas de Flask -->
+    <form id="staff-registration-form" class="login-card" method="POST" action="/api/registro">
+      <!-- Token de seguridad -->
+      <input type="hidden" id="csrf-token-input" name="csrf_token">
+      
+      <label>Nombre completo
+        <input name="nombre" required maxlength="160" autocomplete="name" placeholder="Tu nombre">
+      </label>
+      <label>Correo electrónico
+        <input name="email" type="email" required autocomplete="email" placeholder="nombre@correo.com">
+      </label>
+      <label>Carrera
+        <input name="carrera" required placeholder="Tu carrera que estudias">
+      </label>
+      <label>Intereses laborales
+        <input name="intereses" required placeholder="Ej: prácticas, empleo, área de desarrollo">
+      </label>
+      <label>Habilidades
+        <input name="habilidades" required placeholder="Ej: trabajo en equipo, programación, diseño...">
+      </label>
+      <label>Contraseña
+        <input name="contrasena" type="password" required minlength="8" autocomplete="new-password" placeholder="Mínimo 8 caracteres">
+      </label>
+      <label>Subir tu CV (PDF)
+        <input type="file" name="cv" accept=".pdf">
+      </label>
+      <label class="checkbox">
+        <input type="checkbox" name="acepta_privacidad" required>
+        He leído y acepto el <a href="/aviso-privacidad" target="_blank">Aviso de Privacidad</a> *
+      </label>
+      
+      <button class="button login-button" type="submit">Crear mi perfil <span>→</span></button>
+      <p class="login-help">Al registrarte, aceptas nuestros términos y el tratamiento de tus datos.</p>
     </form>
   </main>
-  <div class="toast" id="toast" role="status" aria-live="polite"></div><script src="script.js"></script>
-</body></html>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <!-- ✅ Ruta corregida -->
+  <script src="/static/script.js"></script>
+</body>
+</html>
