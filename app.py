@@ -351,4 +351,5 @@ def create_profile():
                     (name, email, career, interest, skills, cv_filename, 1),
                 ).lastrowid
             session.clear()
-            session
+            session["user_id"] = user_id
+            session["csrf_token"] = secrets.token_urlsafe(
