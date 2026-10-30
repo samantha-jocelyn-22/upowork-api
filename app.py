@@ -14,7 +14,7 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 
 BASE_DIR = Path(__file__).resolve().parent
-DATABASE = Path("/var/data/upotec.db")
+DATABASE = Path("./upotec.db")
 UPLOADS = Path(os.environ.get("UPOWORK_UPLOADS", str(BASE_DIR / "static" / "uploads")))
 DATABASE.parent.mkdir(parents=True, exist_ok=True)
 UPLOADS.mkdir(parents=True, exist_ok=True)
