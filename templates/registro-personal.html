@@ -3,11 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Registro de personal autorizado UPOwork.">
   <title>UPOwork | Registro de personal</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body class="login-page">
@@ -22,30 +18,36 @@
     <div class="login-heading">
       <p class="eyebrow">Acceso para personal autorizado</p>
       <h1>Cuenta de<br><em>personal UPOTec.</em></h1>
-      <p>El código de invitación confirma que tienes permiso para administrar ofertas y perfiles.</p>
+      <p>El código de invitación confirma que tienes permiso para gestionar vacantes y perfiles desde la universidad.</p>
     </div>
 
     {% if error %}
-    <p class="error-box">{{ error }}</p>
+    <div class="alert-error">{{ error }}</div>
     {% endif %}
 
-    <form action="/registro-personal" method="POST" class="form-box">
-      <label>Nombre completo</label>
-      <input type="text" name="nombre" required class="form-input">
+    <form class="login-form" action="/registro-personal" method="POST">
+      <label for="nombre">Nombre completo</label>
+      <input type="text" id="nombre" name="nombre" required>
 
-      <label>Correo institucional</label>
-      <input type="email" name="email" required class="form-input">
+      <label for="email">Correo institucional</label>
+      <input type="email" id="email" name="email" required>
 
-      <label>Código de invitación</label>
-      <input type="text" name="codigo" required class="form-input" placeholder="Ej: UPOADMIN2026">
+      <label for="codigo">Código de autorización</label>
+      <input type="text" id="codigo" name="codigo" placeholder="Ingresa tu código" required>
 
-      <label>Contraseña (mínimo 8 caracteres)</label>
-      <input type="password" name="password" required class="form-input">
+      <label for="password">Contraseña (mínimo 8 caracteres)</label>
+      <input type="password" id="password" name="password" required>
 
-      <button type="submit" class="btn-primary">Crear cuenta</button>
+      <button type="submit" class="button">Crear cuenta <span>→</span></button>
     </form>
 
     <p class="login-helper">¿Ya tienes cuenta? <a href="/login">Inicia sesión aquí</a></p>
   </main>
+
+  <footer>
+    <div class="footer-inner">
+      <span>© 2026 UPOwork · UPOTec</span>
+    </div>
+  </footer>
 </body>
 </html>
