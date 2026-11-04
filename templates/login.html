@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Inicia sesión en UPOwork.">
+  <meta name="description" content="Inicia sesión en UPOwork">
   <title>UPOwork | Iniciar sesión</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,22 +24,28 @@
     </div>
 
     {% if error %}
-    <p class="error-box">{{ error }}</p>
+    <div class="alert-error">{{ error }}</div>
     {% endif %}
 
-    <form action="/login" method="POST" class="form-box">
-      <label>Correo electrónico</label>
-      <input type="email" name="email" required class="form-input">
+    <form action="/login" method="POST" class="login-form">
+      <label for="email">Correo electrónico</label>
+      <input type="email" id="email" name="email" required class="form-input">
 
-      <label>Contraseña</label>
-      <input type="password" name="password" required class="form-input">
+      <label for="password">Contraseña</label>
+      <input type="password" id="password" name="password" required class="form-input">
 
-      <button type="submit" class="btn-primary">Entrar</button>
+      <button type="submit" class="button">Entrar <span>→</span></button>
     </form>
 
-    <p class="login-helper">
-      ¿No tienes cuenta? <a href="/registro-personal">Registrar personal</a>
-    </p>
+    <p class="login-helper">¿No tienes cuenta? <a href="/registro-personal">Registrar personal</a></p>
   </main>
+
+  <footer>
+    <div class="footer-inner">
+      <span>© 2026 UPOwork · UPOTec</span>
+    </div>
+  </footer>
+
+  <script src="/static/script.js"></script>
 </body>
 </html>
