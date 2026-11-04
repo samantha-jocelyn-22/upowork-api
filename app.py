@@ -6,7 +6,7 @@ import secrets
 from datetime import datetime
 from functools import wraps
 
-from flask import Flask, jsonify, request, session, render_template
+from flask import Flask, jsonify, request, session, render_template, send_from_directory
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 
@@ -23,6 +23,12 @@ app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024
 app.config["SESSION_COOKIE_SECURE"] = os.environ.get("UPOWORK_HTTPS", "false").lower() == "true"
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+
+
+# ========== SERVIR ARCHIVOS ESTÁTICOS ==========
+@app.route('/static/<path:filename>')
+def serve_static(filename):
+    return send_from_directory('static', filename)
 
 
 def get_db():
@@ -79,7 +85,7 @@ def login_required(f):
     return decorated_function
 
 
-# ========== PÁGINAS PRINCIPALES ==========
+# ========== PÁGINAS ==========
 @app.get("/")
 def index():
     return render_template("index.html")
