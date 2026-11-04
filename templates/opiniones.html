@@ -5,36 +5,62 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Consulta y comparte opiniones sobre el servicio UPOwork.">
   <title>UPOwork | Opiniones del servicio</title>
-  <link rel="stylesheet" href="/static/styles.css">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <header class="site-header">
     <a class="brand" href="/" aria-label="UPOwork, inicio">
-      <img class="brand-logo" src="/static/upowork-logo.svg" alt="UPOwork">
+      <img class="brand-logo" src="/upowork-logo.svg" alt="UPOwork">
     </a>
     <button class="menu-toggle" aria-label="Abrir menú" aria-expanded="false">☰</button>
     <nav class="main-nav" aria-label="Navegación principal">
       <a href="/">Inicio</a>
       <a href="/vacantes">Vacantes</a>
-      <a href="/opiniones" class="active">Opiniones</a>
       <a href="/consejos">Consejos</a>
+      <a href="/opiniones" class="active">Opiniones</a>
       <a href="/empresas">Empresas</a>
-      <a href="/login" class="btn-outline">Iniciar sesión</a>
+      <a href="/login" class="nav-cta">Iniciar sesión</a>
     </nav>
   </header>
 
   <main class="section-shell">
     <h1>Opiniones del servicio</h1>
-    <p>Aquí irán las opiniones de los usuarios...</p>
-    <a href="/" class="btn-link">← Volver al inicio</a>
+    <p>Espacio para compartir experiencias y comentarios sobre UPOwork.</p>
+
+    <!-- Aquí van las tarjetas de opiniones -->
+    <div class="opiniones-grid">
+      <div class="opinion-card">
+        <p class="opinion-text">"Excelente plataforma para conectar con oportunidades reales."</p>
+        <p class="opinion-author">— Estudiante UPO</p>
+      </div>
+      <div class="opinion-card">
+        <p class="opinion-text">"Muy útil para encontrar prácticas cerca de la zona."</p>
+        <p class="opinion-author">— Alumno de Ingeniería</p>
+      </div>
+    </div>
+
+    <h2>Deja tu opinión</h2>
+    <form action="/opiniones" method="POST" class="form-box">
+      <textarea name="comentario" rows="4" placeholder="Escribe aquí tu opinión..." required class="form-input"></textarea>
+      <button type="submit" class="btn-primary">Enviar opinión</button>
+    </form>
   </main>
 
+  <footer class="site-footer">
+    <p>&copy; 2026 UPOwork — Universidad Politécnica de Otzolotepec</p>
+  </footer>
+
   <script>
-    const toggle = document.querySelector('.menu-toggle');
+    // Menú móvil
+    const btn = document.querySelector('.menu-toggle');
     const nav = document.querySelector('.main-nav');
-    toggle.addEventListener('click', () => {
-      const open = nav.classList.toggle('open');
-      toggle.setAttribute('aria-expanded', open);
+    btn.addEventListener('click', () => {
+      const open = btn.getAttribute('aria-expanded') === 'true';
+      btn.setAttribute('aria-expanded', String(!open));
+      nav.classList.toggle('open');
     });
   </script>
 </body>
