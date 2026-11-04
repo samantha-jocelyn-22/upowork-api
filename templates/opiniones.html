@@ -5,15 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Consulta y comparte opiniones sobre el servicio UPOwork.">
   <title>UPOwork | Opiniones del servicio</title>
-  <link rel="stylesheet" href="/styles.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
   <header class="site-header">
     <a class="brand" href="/" aria-label="UPOwork, inicio">
-      <img class="brand-logo" src="/upowork-logo.svg" alt="UPOwork">
+      <img class="brand-logo" src="/static/upowork-logo.svg" alt="UPOwork">
     </a>
     <button class="menu-toggle" aria-label="Abrir menú" aria-expanded="false">☰</button>
     <nav class="main-nav" aria-label="Navegación principal">
@@ -30,7 +30,6 @@
     <h1>Opiniones del servicio</h1>
     <p>Espacio para compartir experiencias y comentarios sobre UPOwork.</p>
 
-    <!-- Aquí van las tarjetas de opiniones -->
     <div class="opiniones-grid">
       <div class="opinion-card">
         <p class="opinion-text">"Excelente plataforma para conectar con oportunidades reales."</p>
@@ -54,7 +53,6 @@
   </footer>
 
   <script>
-    // Menú móvil
     const btn = document.querySelector('.menu-toggle');
     const nav = document.querySelector('.main-nav');
     btn.addEventListener('click', () => {
