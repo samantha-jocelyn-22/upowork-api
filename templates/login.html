@@ -3,36 +3,45 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Inicia sesión en UPOwork.">
   <title>UPOwork | Iniciar sesión</title>
-  <link rel="stylesheet" href="/static/styles.css">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
 </head>
 <body class="login-page">
   <header class="site-header">
     <a class="brand" href="/">
-      <img class="brand-logo" src="/static/upowork-logo.svg" alt="UPOwork">
+      <img class="brand-logo" src="/upowork-logo.svg" alt="UPOwork">
     </a>
   </header>
 
   <main class="login-main section-shell">
-    <div class="login-card">
+    <div class="login-heading">
       <h1>Iniciar sesión</h1>
-      <form id="login-form" class="login-form">
-        <input type="hidden" name="role" value="student">
-        
-        <label>Correo electrónico</label>
-        <input type="email" name="email" required>
-
-        <label>Contraseña</label>
-        <input type="password" name="password" required>
-
-        <button type="submit" class="button login-button">Entrar</button>
-      </form>
-
-      <p class="login-help">¿No tienes cuenta? <a href="/registro-personal">Regístrate aquí</a></p>
-      <p class="login-help"><a href="/">← Volver al inicio</a></p>
+      <p>Accede con tu cuenta para ver y postularte a vacantes.</p>
     </div>
-  </main>
 
-  <script src="/static/script.js"></script>
+    {% if error %}
+    <p class="error-box">{{ error }}</p>
+    {% endif %}
+
+    <form action="/login" method="POST" class="form-box">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      
+      <label>Correo electrónico</label>
+      <input type="email" name="email" required class="form-input">
+
+      <label>Contraseña</label>
+      <input type="password" name="password" required class="form-input">
+
+      <button type="submit" class="btn-primary">Entrar</button>
+    </form>
+
+    <p class="login-helper">
+      ¿No tienes cuenta? <a href="/registro-personal">Registrar personal</a>
+    </p>
+  </main>
 </body>
 </html>
