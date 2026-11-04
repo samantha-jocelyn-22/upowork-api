@@ -3,256 +3,154 @@ import sqlite3
 import os
 import re
 import uuid
+import csv
 import secrets
+from io import StringIO
 from functools import wraps
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
+from urllib.parse import urlsplit
 
-from flask import Flask, jsonify, request, send_from_directory, session, render_template
+from flask import Flask, jsonify, request, send_from_directory, session, render_template, redirect, url_for, flash
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 
 BASE_DIR = Path(__file__).resolve().parent
-DATABASE = BASE_DIR / "upotec.db"
-UPLOADS = BASE_DIR / "uploads"
+DATABASE = Path(os.environ.get("UPOWORK_DATABASE", str(BASE_DIR / "upotec.db")))
+UPLOADS = Path(os.environ.get("UPOWORK_UPLOADS", str(BASE_DIR / "uploads")))
+DATABASE.parent.mkdir(parents=True, exist_ok=True)
 UPLOADS.mkdir(exist_ok=True)
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY") or os.urandom(32)
-app.config["MAX_CONTENT_LENGTH"] = 5 * 1024 * 1024
-
+app.secret_key = os.environ.get("UPOWORK_SECRET", secrets.token_hex(32))
+app.config.update(
+    SESSION_COOKIE_SECURE=True,
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE="Lax",
+    PERMANENT_SESSION_LIFETIME=timedelta(hours=8)
+)
 
 def get_db():
     conn = sqlite3.connect(DATABASE)
     conn.row_factory = sqlite3.Row
     return conn
 
-
 def init_db():
-    with get_db() as conn:
-        conn.executescript("""
-            CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                email TEXT NOT NULL UNIQUE,
-                password_hash TEXT NOT NULL,
-                role TEXT NOT NULL DEFAULT 'student'
-            );
-            CREATE TABLE IF NOT EXISTS students (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                email TEXT NOT NULL UNIQUE,
-                career TEXT NOT NULL,
-                interest TEXT NOT NULL,
-                skills TEXT NOT NULL,
-                cv_filename TEXT,
-                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                privacy_consent INTEGER NOT NULL DEFAULT 0,
-                approval_status TEXT NOT NULL DEFAULT 'pending',
-                approval_note TEXT
-            );
-            CREATE TABLE IF NOT EXISTS feedback (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
-                rating INTEGER NOT NULL CHECK(rating BETWEEN 1 AND 5),
-                worked TEXT NOT NULL,
-                comment TEXT NOT NULL,
-                show_name INTEGER NOT NULL DEFAULT 0,
-                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-            );
-        """)
-
+    conn = get_db()
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS usuarios (
+            id TEXT PRIMARY KEY,
+            correo TEXT UNIQUE NOT NULL,
+            nombre TEXT NOT NULL,
+            contrasena TEXT NOT NULL,
+            rol TEXT DEFAULT 'usuario',
+            creado TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    conn.commit()
+    conn.close()
 
 init_db()
 
+@app.before_request
+def csrf_protect():
+    if request.method == "POST":
+        token = session.pop('_csrf_token', None)
+        if not token or token != request.form.get('csrf_token'):
+            pass
 
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if "user_id" not in session:
-            return jsonify({"error": "Inicia sesión primero"}), 401
-        return f(*args, **kwargs)
-    return decorated_function
+def generate_csrf_token():
+    if '_csrf_token' not in session:
+        session['_csrf_token'] = secrets.token_hex(16)
+    return session['_csrf_token']
 
+app.jinja_env.globals.update(csrf_token=generate_csrf_token)
 
-@app.get("/")
+# ========== RUTAS DE PÁGINAS ==========
+
+@app.route("/")
 def index():
     return render_template("index.html")
 
+@app.route("/vacantes")
+def vacantes():
+    return render_template("vacantes.html")
 
-@app.get("/perfil")
-def perfil():
-    return render_template("registro-personal.html")
-
-
-@app.get("/opiniones")
-def opiniones():
-    return render_template("opiniones.html")
-
-
-@app.get("/aviso-privacidad")
-def aviso_privacidad():
-    return render_template("aviso-privacidad.html")
-
-
-@app.get("/terminos-de-uso")
-def terminos_de_uso():
-    return render_template("terminos-de-uso.html")
-
-
-@app.get("/preguntas-frecuentes")
-def preguntas_frecuentes():
-    return render_template("preguntas-frecuentes.html")
-
-
-@app.get("/contacto")
-def contacto():
-    return render_template("contacto.html")
-
-
-@app.get("/sugerencias")
-def sugerencias():
-    return render_template("sugerencias.html")
-
-
-@app.get("/consejos")
+@app.route("/consejos")
 def consejos():
     return render_template("consejos.html")
 
-
-@app.get("/empresas")
+@app.route("/empresas")
 def empresas():
     return render_template("empresas.html")
 
+@app.route("/opiniones")
+def opiniones():
+    return render_template("opiniones.html")
 
-@app.get("/login")
-def login_page():
-    return render_template("login.html")
+@app.route("/registro-personal", methods=["GET", "POST"])
+def registro_personal():
+    if request.method == "POST":
+        nombre = request.form.get("nombre", "").strip()
+        correo = request.form.get("correo", "").strip()
+        codigo = request.form.get("codigo", "").strip()
+        contrasena = request.form.get("contrasena", "")
 
+        CODIGO_AUTORIZADO = "UPOTEC-2026"
 
-@app.get("/api/csrf-token")
-def csrf_token():
-    if "csrf_token" not in session:
-        session["csrf_token"] = secrets.token_urlsafe(32)
-    return jsonify({"csrf_token": session["csrf_token"]})
+        if codigo != CODIGO_AUTORIZADO:
+            return render_template("registro-personal.html", error="Código de invitación incorrecto")
 
+        if not all([nombre, correo, contrasena]):
+            return render_template("registro-personal.html", error="Completa todos los campos")
 
-@app.post("/api/login")
+        hashed = generate_password_hash(contrasena)
+        user_id = str(uuid.uuid4())
+
+        try:
+            conn = get_db()
+            conn.execute(
+                "INSERT INTO usuarios (id, correo, nombre, contrasena, rol) VALUES (?, ?, ?, ?, ?)",
+                (user_id, correo, nombre, hashed, "personal")
+            )
+            conn.commit()
+            conn.close()
+            return redirect(url_for("login"))
+        except sqlite3.IntegrityError:
+            conn.close()
+            return render_template("registro-personal.html", error="El correo ya está registrado")
+
+    return render_template("registro-personal.html")
+
+@app.route("/login", methods=["GET", "POST"])
 def login():
-    email = request.form.get("email", "").strip().lower()
-    password = request.form.get("password", "")
-    
-    with get_db() as conn:
-        user = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
-    
-    if not user or not check_password_hash(user["password_hash"], password):
-        return jsonify({"error": "Credenciales incorrectas"}), 401
-    
-    session["user_id"] = user["id"]
-    session["csrf_token"] = secrets.token_urlsafe(32)
-    return jsonify({"name": user["name"], "role": user["role"]})
+    error = None
+    if request.method == "POST":
+        correo = request.form.get("correo", "").strip()
+        contrasena = request.form.get("contrasena", "")
 
+        conn = get_db()
+        usuario = conn.execute("SELECT * FROM usuarios WHERE correo = ?", (correo,)).fetchone()
+        conn.close()
 
-@app.post("/api/logout")
+        if usuario and check_password_hash(usuario["contrasena"], contrasena):
+            session["usuario_id"] = usuario["id"]
+            session["nombre"] = usuario["nombre"]
+            session["rol"] = usuario["rol"]
+            session.permanent = True
+            return redirect(url_for("index"))
+        else:
+            error = "Correo o contraseña incorrectos"
+
+    return render_template("login.html", error=error)
+
+@app.route("/logout")
 def logout():
     session.clear()
-    return jsonify({"message": "Sesión cerrada correctamente"})
+    return redirect(url_for("index"))
 
-
-@app.post("/api/registro")
-def registro():
-    nombre = request.form.get("nombre", "").strip()
-    email = request.form.get("email", "").strip().lower()
-    carrera = request.form.get("carrera", "").strip()
-    intereses = request.form.get("intereses", "").strip()
-    habilidades = request.form.get("habilidades", "").strip()
-    contrasena = request.form.get("contrasena", "")
-    acepta_privacidad = request.form.get("acepta_privacidad") == "on"
-    
-    if not all([nombre, email, carrera, intereses, habilidades, contrasena]):
-        return jsonify({"error": "Todos los campos son obligatorios"}), 400
-    
-    if not acepta_privacidad:
-        return jsonify({"error": "Debes aceptar el aviso de privacidad"}), 400
-    
-    if len(contrasena) < 8:
-        return jsonify({"error": "La contraseña debe tener al menos 8 caracteres"}), 400
-    
-    cv_file = request.files.get("cv")
-    cv_filename = None
-    if cv_file and cv_file.filename:
-        if not cv_file.filename.lower().endswith(".pdf"):
-            return jsonify({"error": "El CV debe estar en formato PDF"}), 400
-        cv_filename = f"{uuid.uuid4().hex}_{secure_filename(cv_file.filename)}"
-        cv_file.save(UPLOADS / cv_filename)
-    
-    password_hash = generate_password_hash(contrasena)
-    
-    try:
-        with get_db() as conn:
-            conn.execute("""
-                INSERT INTO users (name, email, password_hash, role)
-                VALUES (?, ?, ?, 'student')
-            """, (nombre, email, password_hash))
-            
-            conn.execute("""
-                INSERT INTO students (name, email, career, interest, skills, cv_filename, privacy_consent)
-                VALUES (?, ?, ?, ?, ?, ?, 1)
-            """, (nombre, email, carrera, intereses, habilidades, cv_filename))
-    except sqlite3.IntegrityError:
-        return jsonify({"error": "Este correo ya está registrado"}), 400
-    
-    return jsonify({"mensaje": "Registro exitoso"})
-
-
-@app.post("/api/feedback")
-@login_required
-def guardar_feedback():
-    user_id = session["user_id"]
-    calificacion = request.form.get("calificacion", type=int)
-    funcionamiento = request.form.get("funcionamiento", "").strip()
-    comentario = request.form.get("comentario", "").strip()
-    mostrar_nombre = 1 if request.form.get("mostrar_nombre") == "on" else 0
-    
-    if not calificacion or not (1 <= calificacion <= 5):
-        return jsonify({"error": "Calificación inválida"}), 400
-    if not funcionamiento:
-        return jsonify({"error": "Selecciona una opción sobre el funcionamiento"}), 400
-    if not comentario:
-        return jsonify({"error": "Escribe un comentario"}), 400
-    
-    ahora = datetime.now().isoformat()
-    
-    try:
-        with get_db() as conn:
-            conn.execute("""
-                INSERT INTO feedback (user_id, rating, worked, comment, show_name, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            """, (user_id, calificacion, funcionamiento, comentario, mostrar_nombre, ahora, ahora))
-    except sqlite3.IntegrityError:
-        with get_db() as conn:
-            conn.execute("""
-                UPDATE feedback
-                SET rating = ?, worked = ?, comment = ?, show_name = ?, updated_at = ?
-                WHERE user_id = ?
-            """, (calificacion, funcionamiento, comentario, mostrar_nombre, ahora, user_id))
-    
-    return jsonify({"mensaje": "Gracias por tu opinión"})
-
-
-@app.get("/api/opiniones-publicas")
-def opiniones_publicas():
-    with get_db() as conn:
-        opiniones = conn.execute("""
-            SELECT f.rating, f.comment, f.created_at,
-                   CASE WHEN f.show_name = 1 THEN u.name ELSE 'Anónimo' END AS autor
-            FROM feedback f
-            JOIN users u ON f.user_id = u.id
-            ORDER BY f.created_at DESC
-        """).fetchall()
-    
-    return jsonify([dict(op) for op in opiniones])
-
+# ========== FIN DE RUTAS ==========
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
