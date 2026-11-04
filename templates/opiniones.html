@@ -11,41 +11,14 @@
   <link rel="stylesheet" href="/static/styles.css">
   <style>
     .opinions-page { --op-wine:#762f43; --op-coral:#c34b5c; --op-gold:#d59619; --op-paper:#fffaf2; --op-muted:#806d72; }
-    .opinions-page .opinions-hero {
-      position:relative;
-      overflow:hidden;
-      display:grid;
-      grid-template-columns:minmax(0, 1fr) 250px;
-      align-items:center;
-      gap:38px;
-      margin-top:42px;
-      padding:clamp(34px, 6vw, 72px);
-      border:1px solid #e6d6c6;
-      border-radius:22px;
-      background:linear-gradient(120deg,#fffaf2 0%,#fae8df 68%,#f5dfaa 100%);
-      box-shadow:0 20px 55px rgba(77,42,49,.07);
-    }
-    .opinions-page .opinions-hero:after {
-      position:absolute; right:115px; top:-115px; width:270px; height:270px;
-      border:1px solid rgba(118,47,67,.12); border-radius:50%; content:"";
-    }
+    .opinions-page .opinions-hero { position:relative; overflow:hidden; display:grid; grid-template-columns:minmax(0,1fr) 230px; align-items:center; gap:38px; margin-top:42px; padding:clamp(34px,6vw,72px); border:1px solid #e6d6c6; border-radius:22px; background:linear-gradient(120deg,#fffaf2 0%,#fae8df 68%,#f5dfaa 100%); box-shadow:0 20px 55px rgba(77,42,49,.07); }
+    .opinions-page .opinions-hero:after { position:absolute; right:115px; top:-115px; width:270px; height:270px; border:1px solid rgba(118,47,67,.12); border-radius:50%; content:""; }
     .opinions-page .opinions-hero-copy { position:relative; z-index:1; max-width:860px; }
     .opinions-page .opinions-hero .eyebrow { color:var(--op-wine); }
-    .opinions-page .opinions-hero h1 {
-      max-width:900px; margin:15px 0 20px; color:#3b1f27;
-      font:700 clamp(46px,6.3vw,82px)/1.02 "Playfair Display",Georgia,serif;
-      letter-spacing:-.045em;
-    }
+    .opinions-page .opinions-hero h1 { max-width:900px; margin:15px 0 20px; color:#3b1f27; font:700 clamp(46px,6.3vw,82px)/1.02 "Playfair Display",Georgia,serif; letter-spacing:-.045em; }
     .opinions-page .opinions-hero h1 em { color:var(--op-wine); }
-    .opinions-page .opinions-hero-copy > p:last-child {
-      max-width:680px; margin:0; color:var(--op-muted); font-size:clamp(17px,1.8vw,22px); line-height:1.7;
-    }
-    .opinions-page .quote-art {
-      position:relative; z-index:1; display:grid; place-items:center; width:190px; height:190px;
-      justify-self:center; border-radius:50%; background:linear-gradient(145deg,#762f43,#c34b5c);
-      color:#fffaf2; font:700 140px/.9 "Playfair Display",Georgia,serif;
-      box-shadow:0 20px 35px rgba(118,47,67,.22); transform:rotate(-5deg);
-    }
+    .opinions-page .opinions-hero-copy>p:last-child { max-width:680px; margin:0; color:var(--op-muted); font-size:clamp(17px,1.8vw,22px); line-height:1.7; }
+    .opinions-page .quote-art { position:relative; z-index:1; display:grid; place-items:center; width:180px; height:180px; justify-self:center; border-radius:50%; background:linear-gradient(145deg,#762f43,#c34b5c); color:#fffaf2; font:700 132px/.9 "Playfair Display",Georgia,serif; box-shadow:0 20px 35px rgba(118,47,67,.22); transform:rotate(-5deg); }
     .opinions-page .quote-art:after { position:absolute; right:-8px; bottom:17px; width:34px; height:34px; border:7px solid #f5dfaa; border-radius:50%; background:#287f78; content:""; }
     .opinions-page .opinions-content { padding-top:56px; padding-bottom:80px; }
     .opinions-page .opinions-section-heading { display:flex; align-items:end; justify-content:space-between; gap:20px; margin-bottom:22px; }
@@ -53,10 +26,7 @@
     .opinions-page .community-pill { display:inline-flex; align-items:center; gap:8px; padding:9px 13px; border:1px solid #d5e5de; border-radius:30px; background:#deefeb; color:#1f625c; font-size:13px; font-weight:700; white-space:nowrap; }
     .opinions-page .community-pill:before { width:8px; height:8px; border-radius:50%; background:#287f78; content:""; }
     .opinions-page .opinion-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; }
-    .opinions-page .empty-opinions {
-      grid-column:1/-1; display:grid; justify-items:center; gap:12px; min-height:205px; padding:35px 20px;
-      border:1px dashed #d8c5b7; border-radius:16px; background:rgba(255,250,242,.75); color:var(--op-muted); text-align:center;
-    }
+    .opinions-page .empty-opinions { grid-column:1/-1; display:grid; justify-items:center; gap:12px; min-height:205px; padding:35px 20px; border:1px dashed #d8c5b7; border-radius:16px; background:rgba(255,250,242,.75); color:var(--op-muted); text-align:center; }
     .opinions-page .empty-opinions-icon { display:grid; place-items:center; width:52px; height:52px; border-radius:16px; background:#fae3df; color:var(--op-coral); font-size:26px; }
     .opinions-page .empty-opinions strong { color:#3b1f27; font:600 19px Outfit,sans-serif; }
     .opinions-page .empty-opinions p { max-width:480px; margin:0; line-height:1.65; }
@@ -65,55 +35,31 @@
     .opinions-page .opinion-card small { color:var(--op-muted); }
     .opinions-page .opinion-stars { color:var(--op-gold); letter-spacing:3px; }
     .opinions-page .opinion-form-section { margin-top:52px; }
-    .opinions-page .opinion-form-card {
-      display:grid; grid-template-columns:minmax(220px,.7fr) minmax(0,1.3fr); gap:28px; align-items:start;
-      padding:clamp(24px,4vw,42px); border:1px solid #e6d6c6; border-radius:18px;
-      background:linear-gradient(145deg,#fffaf2,#f8eee3); box-shadow:0 18px 42px rgba(77,42,49,.06);
-    }
+    .opinions-page .opinion-form-card { display:grid; grid-template-columns:minmax(220px,.7fr) minmax(0,1.3fr); gap:28px; align-items:start; padding:clamp(24px,4vw,42px); border:1px solid #e6d6c6; border-radius:18px; background:linear-gradient(145deg,#fffaf2,#f8eee3); box-shadow:0 18px 42px rgba(77,42,49,.06); }
     .opinions-page .form-card-intro h2 { margin:0 0 12px; color:#3b1f27; font:600 30px/1.15 Outfit,sans-serif; }
     .opinions-page .form-card-intro p { margin:0; color:var(--op-muted); line-height:1.7; }
     .opinions-page .opinion-form { display:grid; gap:12px; }
     .opinions-page .opinion-form label { color:#49353c; font-size:14px; font-weight:700; }
-    .opinions-page .opinion-form textarea {
-      display:block; width:100%; min-height:160px; resize:vertical; padding:16px 18px;
-      border:1px solid #decabd; border-radius:10px; background:#fff; color:#3b1f27;
-      font:16px/1.6 "DM Sans",sans-serif; transition:border-color .2s,box-shadow .2s;
-    }
+    .opinions-page .opinion-form textarea { display:block; width:100%; min-height:160px; resize:vertical; padding:16px 18px; border:1px solid #decabd; border-radius:10px; background:#fff; color:#3b1f27; font:16px/1.6 "DM Sans",sans-serif; transition:border-color .2s,box-shadow .2s; }
     .opinions-page .opinion-form textarea:focus { border-color:var(--op-coral); outline:0; box-shadow:0 0 0 4px rgba(195,75,92,.12); }
     .opinions-page .opinion-form-footer { display:flex; align-items:center; justify-content:space-between; gap:14px; }
     .opinions-page .opinion-form-footer small { color:var(--op-muted); }
     .opinions-page .opinion-form button { min-height:50px; }
-    .opinions-page .opinion-toast { margin:0; color:#8c2635; font-size:14px; }
-    @media(max-width:760px) {
-      .opinions-page .opinions-hero { grid-template-columns:1fr; gap:28px; margin-top:24px; padding:32px 24px; }
-      .opinions-page .quote-art { width:115px; height:115px; font-size:86px; }
-      .opinions-page .opinions-content { padding-top:38px; }
-      .opinions-page .opinions-section-heading { align-items:flex-start; flex-direction:column; }
-      .opinions-page .opinion-list { grid-template-columns:1fr; }
-      .opinions-page .opinion-form-card { grid-template-columns:1fr; gap:20px; }
-    }
-    @media(max-width:420px) {
-      .opinions-page .opinion-form-footer { align-items:stretch; flex-direction:column; }
-      .opinions-page .opinion-form button { width:100%; }
-    }
+    .opinions-page .opinion-status { min-height:1.5em; margin:0; color:#1f625c; font-size:14px; }
+    .opinions-page .opinion-status.error { color:#8c2635; }
+    @media(max-width:760px) { .opinions-page .opinions-hero { grid-template-columns:1fr; gap:28px; margin-top:24px; padding:32px 24px; } .opinions-page .quote-art { width:115px; height:115px; font-size:86px; } .opinions-page .opinions-content { padding-top:38px; } .opinions-page .opinions-section-heading { align-items:flex-start; flex-direction:column; } .opinions-page .opinion-list,.opinions-page .opinion-form-card { grid-template-columns:1fr; } }
+    @media(max-width:420px) { .opinions-page .opinion-form-footer { align-items:stretch; flex-direction:column; } .opinions-page .opinion-form button { width:100%; } }
   </style>
 </head>
 <body class="opinions-page">
   <header class="site-header">
-    <a class="brand" href="/" aria-label="UPOwork, inicio">
-      <img class="brand-logo" src="/static/upowork-logo.svg" alt="UPOwork">
-    </a>
+    <a class="brand" href="/" aria-label="UPOwork, inicio"><img class="brand-logo" src="/static/upowork-logo.svg" alt="UPOwork"></a>
     <button class="menu-toggle" aria-label="Abrir menú" aria-expanded="false">☰</button>
     <nav class="main-nav" aria-label="Navegación principal">
-      <a href="/">Inicio</a>
-      <a href="/vacantes">Vacantes</a>
-      <a href="/empresas">Empresas</a>
-      <a href="/consejos">Consejos</a>
-      <a class="active" href="/opiniones">Opiniones</a>
+      <a href="/">Inicio</a><a href="/vacantes">Vacantes</a><a href="/empresas">Empresas</a><a href="/consejos">Consejos</a><a class="active" href="/opiniones">Opiniones</a>
     </nav>
     <a class="button button-small header-cta" href="/login">Iniciar sesión <span>→</span></a>
   </header>
-
   <main class="section-shell opiniones-content">
     <section class="opinions-hero" aria-labelledby="opinions-title">
       <div class="opinions-hero-copy">
@@ -123,50 +69,124 @@
       </div>
       <div class="quote-art" aria-hidden="true">“</div>
     </section>
-
     <section class="opinions-lista" aria-labelledby="comments-title">
-      <div class="opinions-section-heading">
-        <h2 id="comments-title">Experiencias de la comunidad</h2>
-        <span class="community-pill">Tu voz ayuda a mejorar</span>
-      </div>
-      <div class="opinion-list" id="lista-opiniones">
-        <article class="empty-opinions">
-          <span class="empty-opinions-icon" aria-hidden="true">✦</span>
-          <strong>Aún no hay opiniones</strong>
-          <p>¡Puedes ser la primera persona en compartir tu experiencia con UPOwork!</p>
-        </article>
+      <div class="opinions-section-heading"><h2 id="comments-title">Experiencias de la comunidad</h2><span class="community-pill">Tu voz ayuda a mejorar</span></div>
+      <div class="opinion-list" id="lista-opiniones" aria-live="polite" aria-busy="true">
+        <article class="empty-opinions"><span class="empty-opinions-icon" aria-hidden="true">…</span><strong>Cargando opiniones</strong><p>Un momento, estamos consultando a la comunidad.</p></article>
       </div>
     </section>
-
     <section class="opinion-form-section" aria-labelledby="share-opinion-title">
       <div class="opinion-form-card">
-        <div class="form-card-intro">
-          <p class="eyebrow">Tu experiencia cuenta</p>
-          <h2 id="share-opinion-title">Comparte tu opinión</h2>
-          <p>Cuéntanos qué te ha servido, qué mejorarías o cómo podemos hacer que UPOwork sea más útil para ti.</p>
-        </div>
-        <form class="opinion-form" action="/opiniones" method="POST">
+        <div class="form-card-intro"><p class="eyebrow">Tu experiencia cuenta</p><h2 id="share-opinion-title">Comparte tu opinión</h2><p>Cuéntanos qué te ha servido, qué mejorarías o cómo podemos hacer que UPOwork sea más útil para ti.</p></div>
+        <form id="opinion-form" class="opinion-form">
           <label for="comentario">Tu comentario</label>
-          <textarea id="comentario" name="comentario" rows="5" minlength="10" maxlength="1200" placeholder="Escribe aquí tu opinión sobre UPOwork..." required></textarea>
-          <div class="opinion-form-footer">
-            <small>De 10 a 1,200 caracteres. No incluyas información personal sensible.</small>
-            <button type="submit" class="button">Enviar opinión <span>→</span></button>
-          </div>
+          <textarea id="comentario" name="comment" rows="5" minlength="10" maxlength="1200" placeholder="Escribe aquí tu opinión sobre UPOwork..." required></textarea>
+          <div class="opinion-form-footer"><small>De 10 a 1,200 caracteres. No incluyas información personal sensible.</small><button id="opinion-submit" type="submit" class="button">Enviar opinión <span>→</span></button></div>
+          <p id="opinion-status" class="opinion-status" role="status" aria-live="polite"></p>
         </form>
       </div>
     </section>
   </main>
+  <footer><div class="section-shell footer-inner"><a class="brand" href="/"><img class="brand-logo" src="/static/upowork-logo.svg" alt="UPOwork"></a><p>Diseñado para ayudar a nuestros compañeros a crecer de manera laboral.</p><span>© 2026 UPOwork · UPOTec</span></div></footer>
+  <script>
+    (() => {
+      const list = document.querySelector("#lista-opiniones");
+      const form = document.querySelector("#opinion-form");
+      const status = document.querySelector("#opinion-status");
+      const submit = document.querySelector("#opinion-submit");
+      let csrfToken = "";
 
-  <footer>
-    <div class="section-shell footer-inner">
-      <a class="brand" href="/">
-        <img class="brand-logo" src="/static/upowork-logo.svg" alt="UPOwork">
-      </a>
-      <p>Diseñado para ayudar a nuestros compañeros a crecer de manera laboral.</p>
-      <span>© 2026 UPOwork · UPOTec</span>
-    </div>
-  </footer>
+      function showStatus(message, isError = false) {
+        status.textContent = message;
+        status.classList.toggle("error", isError);
+      }
 
-  <script src="/static/script.js"></script>
+      function showEmpty(message, title = "Aún no hay opiniones") {
+        const article = document.createElement("article");
+        article.className = "empty-opinions";
+        const icon = document.createElement("span");
+        icon.className = "empty-opinions-icon";
+        icon.setAttribute("aria-hidden", "true");
+        icon.textContent = "✦";
+        const heading = document.createElement("strong");
+        heading.textContent = title;
+        const text = document.createElement("p");
+        text.textContent = message;
+        article.append(icon, heading, text);
+        list.replaceChildren(article);
+      }
+
+      function renderOpinions(opinions) {
+        if (!opinions.length) {
+          showEmpty("¡Puedes ser la primera persona en compartir tu experiencia con UPOwork!");
+          list.setAttribute("aria-busy", "false");
+          return;
+        }
+        const cards = opinions.map((opinion) => {
+          const card = document.createElement("article");
+          card.className = "opinion-card";
+          const stars = document.createElement("div");
+          stars.className = "opinion-stars";
+          stars.setAttribute("aria-label", "Opinión compartida");
+          stars.textContent = "✦ ✦ ✦";
+          const comment = document.createElement("p");
+          comment.textContent = opinion.comment;
+          const date = document.createElement("small");
+          const parsed = new Date(`${opinion.created_at.replace(" ", "T")}Z`);
+          date.textContent = Number.isNaN(parsed.getTime()) ? "Opinión de la comunidad" : parsed.toLocaleDateString("es-MX", {year:"numeric",month:"long",day:"numeric"});
+          card.append(stars, comment, date);
+          return card;
+        });
+        list.replaceChildren(...cards);
+        list.setAttribute("aria-busy", "false");
+      }
+
+      async function loadOpinions() {
+        list.setAttribute("aria-busy", "true");
+        try {
+          const response = await fetch("/api/opinions", {headers:{Accept:"application/json"}});
+          if (!response.ok) throw new Error("No se pudieron cargar las opiniones.");
+          renderOpinions(await response.json());
+        } catch (error) {
+          showEmpty(error.message || "Intenta recargar la página.", "No fue posible cargar las opiniones");
+          list.setAttribute("aria-busy", "false");
+        }
+      }
+
+      async function getCsrfToken() {
+        if (csrfToken) return csrfToken;
+        const response = await fetch("/api/csrf-token", {headers:{Accept:"application/json"}});
+        if (!response.ok) throw new Error("No se pudo validar la sesión. Recarga la página.");
+        csrfToken = (await response.json()).csrf_token;
+        return csrfToken;
+      }
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        if (!form.reportValidity()) return;
+        submit.disabled = true;
+        showStatus("Enviando tu opinión…");
+        try {
+          const token = await getCsrfToken();
+          const response = await fetch("/api/opinions", {
+            method:"POST",
+            headers:{"Content-Type":"application/json","X-CSRF-Token":token,Accept:"application/json"},
+            body:JSON.stringify({comment:form.elements.comment.value})
+          });
+          const result = await response.json();
+          if (!response.ok) throw new Error(result.error || "No se pudo guardar tu opinión.");
+          form.reset();
+          showStatus(result.message || "¡Gracias por compartir tu opinión!");
+          await loadOpinions();
+        } catch (error) {
+          showStatus(error.message || "Ocurrió un error. Intenta de nuevo.", true);
+        } finally {
+          submit.disabled = false;
+        }
+      });
+
+      loadOpinions();
+    })();
+  </script>
 </body>
 </html>
