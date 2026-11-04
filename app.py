@@ -1,11 +1,15 @@
 from pathlib import Path
+import csv
+import io
 import os
+import re
 import secrets
 import sqlite3
 import uuid
 from functools import wraps
+from urllib.parse import urlparse
 
-from flask import Flask, abort, jsonify, redirect, render_template, request, send_from_directory, session
+from flask import Flask, Response, abort, jsonify, redirect, render_template, request, send_from_directory, session
 from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 
@@ -26,43 +30,93 @@ app.config.update(
 
 
 def get_db():
-    connection = sqlite3.connect(DATABASE, timeout=20)
-    connection.row_factory = sqlite3.Row
-    return connection
+    conn = sqlite3.connect(DATABASE, timeout=20)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys=ON")
+    return conn
 
 
 def init_db():
     with get_db() as conn:
         conn.executescript("""
             CREATE TABLE IF NOT EXISTS users (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                email TEXT NOT NULL UNIQUE,
-                password_hash TEXT NOT NULL,
+                id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL,
+                email TEXT NOT NULL UNIQUE, password_hash TEXT NOT NULL,
                 role TEXT NOT NULL DEFAULT 'student'
             );
             CREATE TABLE IF NOT EXISTS students (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                name TEXT NOT NULL,
-                email TEXT NOT NULL UNIQUE,
-                career TEXT NOT NULL,
-                interest TEXT NOT NULL,
-                skills TEXT NOT NULL,
-                cv_filename TEXT,
+                id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, email TEXT NOT NULL UNIQUE,
+                career TEXT NOT NULL, interest TEXT NOT NULL, skills TEXT NOT NULL, cv_filename TEXT,
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 privacy_consent INTEGER NOT NULL DEFAULT 0,
-                approval_status TEXT NOT NULL DEFAULT 'pending',
-                approval_note TEXT
+                approval_status TEXT NOT NULL DEFAULT 'pending', approval_note TEXT
+            );
+            CREATE TABLE IF NOT EXISTS vacancies (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, company_name TEXT NOT NULL, title TEXT NOT NULL,
+                description TEXT NOT NULL, requirements TEXT DEFAULT '', source_url TEXT NOT NULL,
+                opportunity_type TEXT DEFAULT 'empleo', career TEXT DEFAULT '', location TEXT DEFAULT '',
+                mode TEXT DEFAULT 'presencial', deadline TEXT DEFAULT '', schedule TEXT DEFAULT '', support TEXT DEFAULT '',
+                status TEXT NOT NULL DEFAULT 'active', created_by INTEGER,
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS applications (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, vacancy_id INTEGER NOT NULL,
+                status TEXT NOT NULL DEFAULT 'pending', created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(user_id, vacancy_id)
+            );
+            CREATE TABLE IF NOT EXISTS suggestions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, category TEXT NOT NULL,
+                subject TEXT NOT NULL, message TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'new',
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            );
+            CREATE TABLE IF NOT EXISTS notifications (
+                id INTEGER PRIMARY KEY AUTOINCREMENT, user_id INTEGER NOT NULL, title TEXT NOT NULL,
+                message TEXT NOT NULL, read_at TEXT, created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             );
             CREATE TABLE IF NOT EXISTS opinions (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                comment TEXT NOT NULL,
+                id INTEGER PRIMARY KEY AUTOINCREMENT, comment TEXT NOT NULL,
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             );
         """)
+        # Legacy repository DB has users/students already; keep its records intact.
+        student_columns = {row[1] for row in conn.execute("PRAGMA table_info(students)")}
+        if "privacy_consent" not in student_columns:
+            conn.execute("ALTER TABLE students ADD COLUMN privacy_consent INTEGER NOT NULL DEFAULT 0")
+        if "approval_status" not in student_columns:
+            conn.execute("ALTER TABLE students ADD COLUMN approval_status TEXT NOT NULL DEFAULT 'pending'")
+        if "approval_note" not in student_columns:
+            conn.execute("ALTER TABLE students ADD COLUMN approval_note TEXT")
+        conn.commit()
+    ensure_admin_user()
+
+
+def ensure_admin_user():
+    email = (os.environ.get("UPOWORK_ADMIN_EMAIL") or "").strip().lower()
+    password = os.environ.get("UPOWORK_ADMIN_PASSWORD") or ""
+    if not email or len(password) < 12:
+        return
+    with get_db() as conn:
+        if not conn.execute("SELECT id FROM users WHERE lower(email)=?", (email,)).fetchone():
+            conn.execute(
+                "INSERT INTO users (name,email,password_hash,role) VALUES (?,?,?,'teacher')",
+                (os.environ.get("UPOWORK_ADMIN_NAME", "Coordinación UPOwork"), email, generate_password_hash(password)),
+            )
 
 
 init_db()
+
+
+def current_user():
+    user_id = session.get("user_id")
+    if not user_id:
+        return None
+    with get_db() as conn:
+        return conn.execute("SELECT * FROM users WHERE id=?", (user_id,)).fetchone()
+
+
+def staff_user():
+    user = current_user()
+    return bool(user and user["role"] in ("teacher", "admin"))
 
 
 def csrf_valid():
@@ -71,13 +125,133 @@ def csrf_valid():
     return bool(expected and supplied and secrets.compare_digest(expected, supplied))
 
 
-def api_login_required(view):
+def require_login(view):
     @wraps(view)
     def wrapped(*args, **kwargs):
-        if "user_id" not in session:
+        if not current_user():
             return jsonify({"error": "Inicia sesión primero"}), 401
         return view(*args, **kwargs)
     return wrapped
+
+
+def require_csrf(view):
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        if not csrf_valid():
+            return jsonify({"error": "La sesión expiró. Recarga la página e inténtalo otra vez."}), 400
+        return view(*args, **kwargs)
+    return wrapped
+
+
+def require_staff(view):
+    @wraps(view)
+    def wrapped(*args, **kwargs):
+        if not current_user():
+            return jsonify({"error": "Inicia sesión primero"}), 401
+        if not staff_user():
+            return jsonify({"error": "No autorizado"}), 403
+        return view(*args, **kwargs)
+    return wrapped
+
+
+def safe_url(value):
+    parsed = urlparse(value or "")
+    return parsed.scheme in ("http", "https") and bool(parsed.netloc)
+
+
+# Pages
+@app.get("/")
+def index():
+    return render_template("index.html")
+
+
+@app.get("/health")
+def health():
+    try:
+        with get_db() as conn:
+            conn.execute("SELECT 1").fetchone()
+        return jsonify({"status": "ok", "database": "connected"})
+    except sqlite3.Error:
+        app.logger.exception("Health check database failure")
+        return jsonify({"status": "error", "database": "unavailable"}), 503
+
+
+@app.get("/login")
+def login_page():
+    return render_template("login.html")
+
+
+@app.get("/dashboard")
+@app.get("/dashboard.html")
+def dashboard_page():
+    return render_template("dashboard.html") if current_user() else redirect("/login")
+
+
+@app.get("/perfil")
+@app.get("/perfil.html")
+@app.get("/registrar")
+def perfil_page():
+    return render_template("perfil.html")
+
+
+@app.get("/registro-personal")
+def registro_personal_page():
+    return render_template("registro-personal.html")
+
+
+@app.get("/empresas")
+@app.get("/empresas.html")
+@app.get("/vacantes")
+def empresas_page():
+    return render_template("empresas.html")
+
+
+@app.get("/consejos")
+def consejos_page():
+    return render_template("consejos.html")
+
+
+@app.get("/opiniones")
+def opiniones_page():
+    return render_template("opiniones.html")
+
+
+@app.get("/sugerencias")
+def sugerencias_page():
+    return render_template("sugerencias.html") if current_user() else redirect("/login")
+
+
+@app.get("/aviso-privacidad")
+def privacidad_page():
+    return render_template("aviso-privacidad.html")
+
+
+@app.get("/terminos-de-uso")
+def terminos_page():
+    return render_template("terminos-de-uso.html")
+
+
+@app.get("/preguntas-frecuentes")
+def preguntas_page():
+    return render_template("preguntas-frecuentes.html")
+
+
+@app.get("/contacto")
+def contacto_page():
+    return render_template("contacto.html")
+
+
+@app.get("/empresa-registro")
+def empresa_registro_page():
+    return render_template("empresa-registro.html")
+
+
+# Authentication / session APIs
+@app.get("/api/csrf-token")
+def csrf_token():
+    if "csrf_token" not in session:
+        session["csrf_token"] = secrets.token_urlsafe(32)
+    return jsonify({"csrf_token": session["csrf_token"]})
 
 
 def authenticate(email, password, selected_role=None):
@@ -92,27 +266,6 @@ def authenticate(email, password, selected_role=None):
     return user
 
 
-@app.get("/")
-def index():
-    return render_template("index.html")
-
-
-@app.get("/health")
-def health():
-    try:
-        with get_db() as conn:
-            conn.execute("SELECT 1").fetchone()
-        return jsonify({"status": "ok", "database": "connected"})
-    except sqlite3.Error:
-        app.logger.exception("Database health check failed")
-        return jsonify({"status": "error", "database": "unavailable"}), 503
-
-
-@app.get("/login")
-def login_page():
-    return render_template("login.html")
-
-
 @app.post("/login")
 def login_post():
     user = authenticate(request.form.get("email", ""), request.form.get("password", ""), request.form.get("role") or None)
@@ -122,59 +275,36 @@ def login_post():
 
 
 @app.post("/api/login")
+@require_csrf
 def api_login():
-    if not csrf_valid():
-        return jsonify({"error": "La sesión expiró. Recarga la página e inténtalo otra vez."}), 400
-    data = request.form if request.form else (request.get_json(silent=True) or {})
+    data = request.form if request.form else request.get_json(silent=True) or {}
     user = authenticate(str(data.get("email", "")), str(data.get("password", "")), data.get("role"))
     if not user:
         return jsonify({"error": "Correo, contraseña o tipo de cuenta incorrectos."}), 401
     return jsonify({"message": "Sesión iniciada", "user": {"name": user["name"], "role": user["role"]}})
 
 
-@app.get("/dashboard")
-@app.get("/dashboard.html")
-def dashboard():
-    if "user_id" not in session:
-        return redirect("/login")
-    return render_template("dashboard.html")
-
-
 @app.post("/api/logout")
-def logout():
-    if "user_id" not in session:
-        return jsonify({"error": "Inicia sesión primero"}), 401
-    if not csrf_valid():
-        return jsonify({"error": "La sesión expiró. Recarga la página."}), 400
+@require_login
+@require_csrf
+def api_logout():
     session.clear()
     return jsonify({"message": "Sesión cerrada"})
 
 
 @app.get("/api/me")
 def api_me():
-    if "user_id" not in session:
-        return jsonify({"error": "No autenticado"}), 401
-    with get_db() as conn:
-        user = conn.execute("SELECT id,name,email,role FROM users WHERE id=?", (session["user_id"],)).fetchone()
+    user = current_user()
     if not user:
-        session.clear()
         return jsonify({"error": "No autenticado"}), 401
-    return jsonify(dict(user))
+    return jsonify({"id": user["id"], "name": user["name"], "email": user["email"], "role": user["role"]})
 
 
-@app.get("/registrar")
-@app.get("/perfil")
-@app.get("/perfil.html")
-def perfil():
-    # The student form is public: a student has to be able to create an account first.
-    return render_template("perfil.html")
-
-
+# Student registration/profile and protected CV download
 @app.post("/api/profiles")
 @app.post("/api/registro")
+@require_csrf
 def register_profile():
-    if not csrf_valid():
-        return jsonify({"error": "La sesión expiró. Recarga la página e inténtalo otra vez."}), 400
     name = (request.form.get("name") or request.form.get("nombre") or "").strip()
     email = (request.form.get("email") or "").strip().lower()
     career = (request.form.get("career") or request.form.get("carrera") or "").strip()
@@ -183,7 +313,7 @@ def register_profile():
     password = request.form.get("password") or request.form.get("contrasena") or ""
     consent = request.form.get("privacy_consent") in ("1", "on", "true") or request.form.get("acepta_privacidad") in ("1", "on", "true")
     if not all((name, email, career, interest, skills, password)):
-        return jsonify({"error": "Todos los campos son obligatorios."}), 400
+        return jsonify({"error": "Todos los campos obligatorios deben completarse."}), 400
     if len(password) < 12:
         return jsonify({"error": "La contraseña debe tener al menos 12 caracteres."}), 400
     if not consent:
@@ -191,6 +321,7 @@ def register_profile():
 
     cv = request.files.get("cv")
     cv_filename = None
+    saved_path = None
     if cv and cv.filename:
         if not secure_filename(cv.filename).lower().endswith(".pdf"):
             return jsonify({"error": "El CV debe ser un PDF."}), 400
@@ -198,15 +329,16 @@ def register_profile():
             return jsonify({"error": "El archivo no parece ser un PDF válido."}), 400
         cv.stream.seek(0)
         cv_filename = f"{uuid.uuid4().hex}.pdf"
-        cv.save(UPLOADS / cv_filename)
+        saved_path = UPLOADS / cv_filename
+        cv.save(saved_path)
     try:
         with get_db() as conn:
             cursor = conn.execute("INSERT INTO users (name,email,password_hash,role) VALUES (?,?,?,'student')", (name, email, generate_password_hash(password)))
             conn.execute("INSERT INTO students (name,email,career,interest,skills,cv_filename,privacy_consent) VALUES (?,?,?,?,?,?,1)", (name, email, career, interest, skills, cv_filename))
             user_id = cursor.lastrowid
     except sqlite3.IntegrityError:
-        if cv_filename:
-            (UPLOADS / cv_filename).unlink(missing_ok=True)
+        if saved_path:
+            saved_path.unlink(missing_ok=True)
         return jsonify({"error": "Este correo ya está registrado."}), 400
     session.clear()
     session.update(user_id=user_id, name=name, role="student")
@@ -214,7 +346,7 @@ def register_profile():
 
 
 @app.get("/api/profile")
-@api_login_required
+@require_login
 def student_profile():
     with get_db() as conn:
         user = conn.execute("SELECT email FROM users WHERE id=?", (session["user_id"],)).fetchone()
@@ -222,9 +354,209 @@ def student_profile():
     return jsonify(dict(profile) if profile else None)
 
 
-@app.get("/opiniones")
-def opiniones():
-    return render_template("opiniones.html")
+@app.get("/api/students/<int:student_id>/cv")
+@require_login
+def download_cv(student_id):
+    user = current_user()
+    with get_db() as conn:
+        row = conn.execute("SELECT email,cv_filename FROM students WHERE id=?", (student_id,)).fetchone()
+    if not row or not row["cv_filename"]:
+        abort(404)
+    if user["role"] not in ("teacher", "admin") and user["email"].lower() != row["email"].lower():
+        abort(403)
+    return send_from_directory(UPLOADS, row["cv_filename"], mimetype="application/pdf", as_attachment=True, download_name="CV.pdf")
+
+
+# Vacancies
+@app.get("/api/vacancies")
+def api_vacancies():
+    with get_db() as conn:
+        rows = conn.execute("SELECT * FROM vacancies WHERE status='active' ORDER BY created_at DESC").fetchall()
+    return jsonify([dict(row) for row in rows])
+
+
+@app.post("/api/vacancies")
+@require_login
+@require_csrf
+@require_staff
+def create_vacancy():
+    data = request.get_json(silent=True) or {}
+    company, title, source, description = (str(data.get(k) or "").strip() for k in ("company_name", "title", "source_url", "description"))
+    if not all((company, title, source, description)) or not safe_url(source):
+        return jsonify({"error": "Empresa, puesto, descripción y enlace http(s) válido son obligatorios."}), 400
+    with get_db() as conn:
+        cursor = conn.execute("""INSERT INTO vacancies (company_name,title,description,requirements,source_url,opportunity_type,career,location,mode,deadline,schedule,support,created_by)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""", (company[:160], title[:200], description[:3000], str(data.get("requirements") or "")[:3000], source[:2048], str(data.get("opportunity_type") or "empleo")[:80], str(data.get("career") or "")[:160], str(data.get("location") or "")[:160], str(data.get("mode") or "presencial")[:40], str(data.get("deadline") or "")[:20], str(data.get("schedule") or "")[:160], str(data.get("support") or "")[:160], session["user_id"]))
+    return jsonify({"message": "Oportunidad publicada", "id": cursor.lastrowid}), 201
+
+
+@app.get("/api/my-vacancies")
+@require_login
+@require_staff
+def my_vacancies():
+    with get_db() as conn:
+        rows = conn.execute("SELECT * FROM vacancies ORDER BY created_at DESC").fetchall()
+    return jsonify([dict(row) for row in rows])
+
+
+@app.patch("/api/vacancies/<int:vacancy_id>")
+@require_login
+@require_csrf
+@require_staff
+def update_vacancy(vacancy_id):
+    status = (request.get_json(silent=True) or {}).get("status")
+    if status not in ("active", "closed"):
+        return jsonify({"error": "Estado de vacante no válido."}), 400
+    with get_db() as conn:
+        result = conn.execute("UPDATE vacancies SET status=? WHERE id=?", (status, vacancy_id))
+    return jsonify({"message": "Vacante actualizada"}) if result.rowcount else (jsonify({"error": "Vacante no encontrada."}), 404)
+
+
+@app.post("/api/vacancies/<int:vacancy_id>/applications")
+@require_login
+@require_csrf
+def apply_vacancy(vacancy_id):
+    if current_user()["role"] != "student":
+        return jsonify({"error": "Solo los alumnos pueden postularse."}), 403
+    with get_db() as conn:
+        if not conn.execute("SELECT id FROM vacancies WHERE id=? AND status='active'", (vacancy_id,)).fetchone():
+            return jsonify({"error": "Vacante no encontrada o cerrada."}), 404
+        try:
+            conn.execute("INSERT INTO applications (user_id,vacancy_id) VALUES (?,?)", (session["user_id"], vacancy_id))
+        except sqlite3.IntegrityError:
+            return jsonify({"message": "Ya te habías postulado a esta vacante."})
+    return jsonify({"message": "Postulación registrada"}), 201
+
+
+@app.get("/api/applications")
+@require_login
+def api_applications():
+    user = current_user()
+    with get_db() as conn:
+        if user["role"] in ("teacher", "admin"):
+            rows = conn.execute("SELECT a.*,v.title,v.company_name,v.source_url,u.name AS student_name,u.email AS student_email FROM applications a JOIN vacancies v ON v.id=a.vacancy_id JOIN users u ON u.id=a.user_id ORDER BY a.created_at DESC").fetchall()
+        else:
+            rows = conn.execute("SELECT a.*,v.title,v.company_name,v.source_url FROM applications a JOIN vacancies v ON v.id=a.vacancy_id WHERE a.user_id=? ORDER BY a.created_at DESC", (user["id"],)).fetchall()
+    return jsonify([dict(row) for row in rows])
+
+
+@app.patch("/api/applications/<int:application_id>")
+@require_login
+@require_csrf
+@require_staff
+def update_application(application_id):
+    status = (request.get_json(silent=True) or {}).get("status")
+    if status not in ("pending", "reviewing", "accepted", "rejected"):
+        return jsonify({"error": "Estado de postulación no válido."}), 400
+    with get_db() as conn:
+        result = conn.execute("UPDATE applications SET status=? WHERE id=?", (status, application_id))
+    return jsonify({"message": "Postulación actualizada"}) if result.rowcount else (jsonify({"error": "Postulación no encontrada."}), 404)
+
+
+@app.get("/api/recommendations")
+@require_login
+def recommendations():
+    with get_db() as conn:
+        user = conn.execute("SELECT email FROM users WHERE id=?", (session["user_id"],)).fetchone()
+        student = conn.execute("SELECT * FROM students WHERE lower(email)=lower(?)", (user["email"],)).fetchone() if user else None
+        if not student:
+            return jsonify([])
+        vacancies = conn.execute("SELECT * FROM vacancies WHERE status='active' ORDER BY created_at DESC").fetchall()
+    tokens = set(re.findall(r"[a-záéíóúñ0-9]+", f"{student['career']} {student['interest']} {student['skills']}".lower()))
+    results = []
+    for vacancy in vacancies:
+        if vacancy["career"] and vacancy["career"].lower() != student["career"].lower():
+            continue
+        text = f"{vacancy['title']} {vacancy['description']} {vacancy['requirements']} {vacancy['career']}".lower()
+        matched = any(len(token) > 3 and token in text for token in tokens)
+        results.append({**dict(vacancy), "match_reasons": ["Coincide con tu carrera"] + (["Coincide con tus intereses o habilidades"] if matched else [])})
+    return jsonify(results[:10])
+
+
+@app.get("/api/notifications")
+@require_login
+def notifications():
+    with get_db() as conn:
+        rows = conn.execute("SELECT * FROM notifications WHERE user_id=? ORDER BY created_at DESC LIMIT 20", (session["user_id"],)).fetchall()
+    return jsonify([dict(row) for row in rows])
+
+
+# Students and suggestions for staff dashboard
+@app.get("/api/students")
+@require_login
+@require_staff
+def api_students():
+    with get_db() as conn:
+        rows = conn.execute("SELECT * FROM students ORDER BY created_at DESC").fetchall()
+    return jsonify([dict(row) for row in rows])
+
+
+@app.patch("/api/students/<int:student_id>/approval")
+@require_login
+@require_csrf
+@require_staff
+def approve_student(student_id):
+    status = (request.get_json(silent=True) or {}).get("status")
+    if status not in ("pending", "approved", "rejected"):
+        return jsonify({"error": "Estado de perfil no válido."}), 400
+    with get_db() as conn:
+        result = conn.execute("UPDATE students SET approval_status=? WHERE id=?", (status, student_id))
+    return jsonify({"message": "Estado actualizado"}) if result.rowcount else (jsonify({"error": "Perfil no encontrado."}), 404)
+
+
+@app.delete("/api/students/<int:student_id>")
+@require_login
+@require_csrf
+@require_staff
+def delete_student(student_id):
+    with get_db() as conn:
+        student = conn.execute("SELECT email,cv_filename FROM students WHERE id=?", (student_id,)).fetchone()
+        if not student:
+            return jsonify({"error": "Perfil no encontrado."}), 404
+        user = conn.execute("SELECT id FROM users WHERE lower(email)=lower(?)", (student["email"],)).fetchone()
+        if user:
+            conn.execute("DELETE FROM applications WHERE user_id=?", (user["id"],))
+            conn.execute("DELETE FROM suggestions WHERE user_id=?", (user["id"],))
+            conn.execute("DELETE FROM users WHERE id=?", (user["id"],))
+        conn.execute("DELETE FROM students WHERE id=?", (student_id,))
+    if student["cv_filename"]:
+        (UPLOADS / student["cv_filename"]).unlink(missing_ok=True)
+    return jsonify({"message": "Perfil eliminado"})
+
+
+@app.get("/api/suggestions")
+@require_login
+@require_staff
+def api_suggestions():
+    with get_db() as conn:
+        rows = conn.execute("SELECT s.*,u.name AS student_name FROM suggestions s JOIN users u ON u.id=s.user_id ORDER BY s.created_at DESC").fetchall()
+    return jsonify([dict(row) for row in rows])
+
+
+@app.post("/api/suggestions")
+@require_login
+@require_csrf
+def create_suggestion():
+    data = request.get_json(silent=True) or {}
+    category, subject, message = (str(data.get(key) or "").strip() for key in ("category", "subject", "message"))
+    if not all((category, subject, message)) or len(subject) > 120 or len(message) < 15 or len(message) > 2000:
+        return jsonify({"error": "Completa todos los campos; el mensaje debe tener entre 15 y 2,000 caracteres."}), 400
+    with get_db() as conn:
+        conn.execute("INSERT INTO suggestions (user_id,category,subject,message) VALUES (?,?,?,?)", (session["user_id"], category[:60], subject, message))
+    return jsonify({"message": "Sugerencia enviada"}), 201
+
+
+@app.patch("/api/suggestions/<int:suggestion_id>")
+@require_login
+@require_csrf
+@require_staff
+def update_suggestion(suggestion_id):
+    status = (request.get_json(silent=True) or {}).get("status")
+    if status not in ("new", "reviewing", "resolved"):
+        return jsonify({"error": "Estado de sugerencia no válido."}), 400
+    with get_db() as conn:
+        result = conn.execute("UPDATE suggestions SET status=? WHERE id=?", (status, suggestion_id))
+    return jsonify({"message": "Seguimiento actualizado"}) if result.rowcount else (jsonify({"error": "Sugerencia no encontrada."}), 404)
 
 
 @app.get("/api/opinions")
@@ -235,9 +567,8 @@ def list_opinions():
 
 
 @app.post("/api/opinions")
+@require_csrf
 def create_opinion():
-    if not csrf_valid():
-        return jsonify({"error": "La sesión expiró. Recarga la página e inténtalo otra vez."}), 400
     data = request.get_json(silent=True) or request.form
     comment = str(data.get("comment") or data.get("comentario") or "").strip()
     if not 10 <= len(comment) <= 1200:
@@ -250,84 +581,17 @@ def create_opinion():
     return redirect("/opiniones?enviada=1", code=303)
 
 
-@app.post("/opiniones")
-def opiniones_guardar():
-    # Backwards compatibility for older no-JS form submissions.
-    if not csrf_valid():
-        return "La sesión expiró. Recarga la página e inténtalo otra vez.", 400
-    comment = request.form.get("comentario", "").strip()
-    if not 10 <= len(comment) <= 1200:
-        return "La opinión debe tener entre 10 y 1,200 caracteres.", 400
+@app.get("/api/students/export")
+@require_login
+@require_staff
+def export_students():
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["Nombre", "Correo", "Carrera", "Interés", "Habilidades", "Estado"])
     with get_db() as conn:
-        conn.execute("INSERT INTO opinions (comment) VALUES (?)", (comment,))
-    return redirect("/opiniones?enviada=1", code=303)
-
-
-@app.get("/api/csrf-token")
-def csrf_token():
-    if "csrf_token" not in session:
-        session["csrf_token"] = secrets.token_urlsafe(32)
-    return jsonify({"csrf_token": session["csrf_token"]})
-
-
-@app.get("/registro-personal")
-def registro_personal_page():
-    return render_template("registro-personal.html")
-
-
-@app.post("/registro-personal")
-def registro_personal_post():
-    name = request.form.get("nombre", "").strip()
-    email = request.form.get("email", "").strip().lower()
-    code = request.form.get("codigo", "")
-    password = request.form.get("password", "")
-    invite_code = os.environ.get("UPOWORK_STAFF_INVITE_CODE", "")
-    if not invite_code or not secrets.compare_digest(code, invite_code):
-        return render_template("registro-personal.html", error="El código de invitación no es válido o no está configurado."), 400
-    if not name or not email or len(password) < 12:
-        return render_template("registro-personal.html", error="Completa los campos; la contraseña requiere 12 caracteres."), 400
-    try:
-        with get_db() as conn:
-            conn.execute("INSERT INTO users (name,email,password_hash,role) VALUES (?,?,?,'teacher')", (name, email, generate_password_hash(password)))
-    except sqlite3.IntegrityError:
-        return render_template("registro-personal.html", error="Este correo ya está registrado."), 400
-    return redirect("/login")
-
-
-@app.get("/consejos")
-def consejos():
-    return render_template("consejos.html")
-
-
-@app.get("/empresas")
-def empresas():
-    return render_template("empresas.html")
-
-
-@app.get("/vacantes")
-def vacantes():
-    # The existing vacancies interface lives in empresas.html; do not render a missing template.
-    return redirect("/empresas", code=302)
-
-
-@app.get("/aviso-privacidad")
-def aviso_privacidad():
-    return render_template("aviso-privacidad.html")
-
-
-@app.get("/terminos-de-uso")
-def terminos():
-    return render_template("terminos-de-uso.html")
-
-
-@app.get("/preguntas-frecuentes")
-def preguntas():
-    return render_template("preguntas-frecuentes.html")
-
-
-@app.get("/contacto")
-def contacto():
-    return render_template("contacto.html")
+        rows = conn.execute("SELECT name,email,career,interest,skills,approval_status FROM students ORDER BY created_at DESC").fetchall()
+    writer.writerows([row[key] for key in ("name", "email", "career", "interest", "skills", "approval_status")] for row in rows)
+    return Response("\ufeff" + output.getvalue(), mimetype="text/csv; charset=utf-8", headers={"Content-Disposition": "attachment; filename=alumnos-upowork.csv"})
 
 
 @app.get("/styles.css")
