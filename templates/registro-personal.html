@@ -21,17 +21,17 @@
       <p>El código de invitación confirma que tienes permiso para gestionar ofertas y perfiles.</p>
     </div>
 
-    <form class="login-form" method="post">
+    <form class="login-form" method="post" action="/api/registro">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
       
       <label>Nombre completo</label>
       <input type="text" name="nombre" required>
 
       <label>Correo institucional</label>
-      <input type="email" name="correo" required>
+      <input type="email" name="email" required>
 
-      <label>Código de invitación</label>
-      <input type="text" name="codigo" required>
+      <label>Carrera</label>
+      <input type="text" name="carrera" required>
 
       <label>Contraseña</label>
       <input type="password" name="contrasena" required>
