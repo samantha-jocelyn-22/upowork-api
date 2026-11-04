@@ -112,9 +112,9 @@ def logout():
     return redirect("/")
 
 
-@app.get("/registro-personal")
-def registro_personal():
-    return render_template("registro-personal.html")
+@app.get("/registrar")
+def registrar_redirect():
+    return redirect("/registro-personal")
 
 
 @app.post("/registro-personal")
