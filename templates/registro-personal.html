@@ -5,15 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Registro de personal autorizado UPOwork.">
   <title>UPOwork | Registro de personal</title>
-  <link rel="stylesheet" href="/styles.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body class="login-page">
   <header class="site-header">
     <a class="brand" href="/">
-      <img class="brand-logo" src="/upowork-logo.svg" alt="UPOwork">
+      <img class="brand-logo" src="/static/upowork-logo.svg" alt="UPOwork">
     </a>
     <a class="text-link" href="/login">Iniciar sesión</a>
   </header>
@@ -25,6 +25,10 @@
       <p>El código de invitación confirma que tienes permiso para administrar ofertas y perfiles.</p>
     </div>
 
+    {% if error %}
+    <p class="error-box">{{ error }}</p>
+    {% endif %}
+
     <form action="/registro-personal" method="POST" class="form-box">
       <label>Nombre completo</label>
       <input type="text" name="nombre" required class="form-input">
@@ -33,9 +37,9 @@
       <input type="email" name="email" required class="form-input">
 
       <label>Código de invitación</label>
-      <input type="text" name="codigo" required class="form-input">
+      <input type="text" name="codigo" required class="form-input" placeholder="Ej: UPOADMIN2026">
 
-      <label>Contraseña</label>
+      <label>Contraseña (mínimo 8 caracteres)</label>
       <input type="password" name="password" required class="form-input">
 
       <button type="submit" class="btn-primary">Crear cuenta</button>
