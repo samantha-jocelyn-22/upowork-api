@@ -3,51 +3,97 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Registro de personal autorizado de UPOwork.">
   <title>UPOwork | Registro de personal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@500;600;700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/styles.css">
+  <style>
+    .staff-register-page { min-height:100vh; display:flex; flex-direction:column; background:#f3eadc; color:#3b1f27; font-family:"DM Sans",sans-serif; }
+    .staff-register-page .site-header { flex:0 0 auto; width:calc(100% - 56px); max-width:1780px; height:112px; margin:0 auto; padding:16px clamp(20px,3vw,48px); border-bottom:1px solid rgba(91,62,54,.09); display:flex; align-items:center; justify-content:space-between; }
+    .staff-register-page .brand { display:inline-flex; align-items:center; }
+    .staff-register-page .brand-logo { display:block; width:220px; max-height:72px; object-fit:contain; }
+    .staff-register-page .header-login { color:#806873; font-size:21px; font-weight:700; text-decoration:none; }
+    .staff-register-page .header-login:hover { color:#762f43; }
+    .staff-register-page .register-layout { width:min(calc(100% - 56px),1600px); flex:1; min-height:650px; margin:0 auto; padding:48px clamp(20px,4.7vw,76px) 58px; display:grid; grid-template-columns:minmax(0,1.08fr) minmax(430px,.92fr); align-items:center; gap:clamp(50px,8vw,140px); }
+    .staff-register-page .register-intro { max-width:760px; }
+    .staff-register-page .register-eyebrow { margin:0 0 30px; color:#762f43; font-size:16px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; }
+    .staff-register-page .register-intro h1 { margin:0 0 26px; color:#3b1f27; font:700 clamp(56px,6.1vw,88px)/1.08 "Playfair Display",Georgia,serif; letter-spacing:-.055em; }
+    .staff-register-page .register-intro h1 em { font-weight:700; }
+    .staff-register-page .register-intro-copy { max-width:620px; margin:0; color:#806873; font-size:clamp(19px,1.65vw,25px); line-height:1.75; }
+    .staff-register-page .register-card { width:100%; padding:clamp(28px,3vw,44px); border:1px solid #e3d2c3; border-radius:17px; background:#fffaf3; box-shadow:0 22px 65px rgba(87,57,48,.07); }
+    .staff-register-page .register-card h2 { margin:0 0 24px; color:#3b1f27; font:600 25px/1.2 Outfit,sans-serif; }
+    .staff-register-page .register-form { display:grid; gap:17px; }
+    .staff-register-page .register-form label { display:grid; gap:8px; color:#40515a; font-size:14px; font-weight:700; }
+    .staff-register-page .register-form input { width:100%; min-height:58px; padding:0 17px; border:1px solid #dfcbbd; border-radius:8px; background:#fff; color:#473039; font:16px "DM Sans",sans-serif; }
+    .staff-register-page .register-form input:focus { border-color:#9c3e59; outline:3px solid rgba(156,62,89,.14); }
+    .staff-register-page .register-submit { width:100%; min-height:66px; margin-top:5px; border:0; border-radius:9px; background:linear-gradient(105deg,#762d47,#c3445a); color:#fff; cursor:pointer; font:700 17px "DM Sans",sans-serif; }
+    .staff-register-page .register-submit:hover { filter:brightness(1.05); }
+    .staff-register-page .register-submit span { margin-left:14px; font-size:22px; font-weight:400; }
+    .staff-register-page .register-note { margin:18px 0 0; color:#806873; text-align:center; font-size:13px; line-height:1.55; }
+    .staff-register-page .register-error { margin:0 0 18px; padding:13px 15px; border:1px solid #e4a6aa; border-radius:8px; background:#fff0ef; color:#8c2635; }
+    .staff-register-page .register-helper { margin:20px 0 0; color:#806873; text-align:center; font-size:15px; }
+    .staff-register-page .register-helper a { color:#bd4058; font-weight:700; }
+    .staff-register-page footer { width:100%; margin-top:auto; padding:24px 28px; border-top:1px solid #dfd2c4; color:#806873; text-align:right; font-size:14px; }
+    @media(max-width:900px) {
+      .staff-register-page .site-header { width:calc(100% - 28px); height:88px; padding:12px 10px; }
+      .staff-register-page .register-layout { width:min(calc(100% - 36px),640px); min-height:0; padding:48px 0 56px; grid-template-columns:1fr; gap:34px; }
+      .staff-register-page .register-intro { text-align:center; margin:0 auto; }
+      .staff-register-page .register-eyebrow { margin-bottom:18px; }
+      .staff-register-page .register-intro h1 { margin-bottom:15px; font-size:clamp(48px,9vw,68px); }
+      .staff-register-page .register-intro-copy { margin:auto; font-size:18px; line-height:1.6; }
+    }
+    @media(max-width:520px) {
+      .staff-register-page .brand-logo { width:160px; }
+      .staff-register-page .header-login { font-size:15px; }
+      .staff-register-page .register-layout { width:calc(100% - 28px); padding:36px 0 44px; }
+      .staff-register-page .register-card { padding:24px 20px; }
+      .staff-register-page .register-intro h1 { font-size:clamp(42px,12vw,56px); }
+      .staff-register-page footer { padding:20px 16px; font-size:12px; }
+    }
+  </style>
 </head>
-<body class="login-page">
+<body class="staff-register-page">
   <header class="site-header">
-    <a class="brand" href="/">
+    <a class="brand" href="/" aria-label="UPOwork, inicio">
       <img class="brand-logo" src="/static/upowork-logo.svg" alt="UPOwork">
     </a>
-    <a class="text-link" href="/login">Iniciar sesión</a>
+    <a class="header-login" href="/login">Iniciar sesión</a>
   </header>
 
-  <main class="login-main section-shell">
-    <div class="login-heading">
-      <p class="eyebrow">Acceso para personal autorizado</p>
-      <h1>Cuenta de<br><em>personal UPOTec.</em></h1>
-      <p>El código de invitación confirma que tienes permiso para gestionar vacantes y perfiles desde la universidad.</p>
-    </div>
+  <main class="register-layout">
+    <section class="register-intro" aria-labelledby="staff-register-title">
+      <p class="register-eyebrow">Acceso para personal autorizado</p>
+      <h1 id="staff-register-title">Cuenta de<br><em>personal UPOTec.</em></h1>
+      <p class="register-intro-copy">El código de invitación confirma que tienes autorización para administrar perfiles y publicar oportunidades.</p>
+    </section>
 
-    {% if error %}
-    <div class="alert-error">{{ error }}</div>
-    {% endif %}
-
-    <form class="login-form" action="/registro-personal" method="POST">
-      <label for="nombre">Nombre completo</label>
-      <input type="text" id="nombre" name="nombre" required>
-
-      <label for="email">Correo institucional</label>
-      <input type="email" id="email" name="email" required>
-
-      <label for="codigo">Código de autorización</label>
-      <input type="text" id="codigo" name="codigo" placeholder="Ingresa tu código" required>
-
-      <label for="password">Contraseña (mínimo 8 caracteres)</label>
-      <input type="password" id="password" name="password" required>
-
-      <button type="submit" class="button">Crear cuenta <span>→</span></button>
-    </form>
-
-    <p class="login-helper">¿Ya tienes cuenta? <a href="/login">Inicia sesión aquí</a></p>
+    <section class="register-card" aria-label="Formulario de registro de personal">
+      <h2>Crear cuenta de personal</h2>
+      {% if error %}
+      <div class="register-error" role="alert">{{ error }}</div>
+      {% endif %}
+      <form class="register-form" action="/registro-personal" method="POST">
+        <label for="nombre">Nombre completo
+          <input type="text" id="nombre" name="nombre" autocomplete="name" placeholder="Tu nombre" required>
+        </label>
+        <label for="email">Correo electrónico
+          <input type="email" id="email" name="email" autocomplete="email" placeholder="nombre@correo.com" required>
+        </label>
+        <label for="password">Contraseña
+          <input type="password" id="password" name="password" minlength="12" autocomplete="new-password" placeholder="Mínimo 12 caracteres" required>
+        </label>
+        <label for="codigo">Código privado de invitación
+          <input type="password" id="codigo" name="codigo" autocomplete="off" required>
+        </label>
+        <button class="register-submit" type="submit">Crear cuenta de personal <span aria-hidden="true">⟶</span></button>
+      </form>
+      <p class="register-note">Solicita el código a la administración de UPOwork. No lo compartas con alumnos ni personas externas.</p>
+      <p class="register-helper">¿Ya tienes cuenta? <a href="/login">Inicia sesión aquí</a></p>
+    </section>
   </main>
 
-  <footer>
-    <div class="footer-inner">
-      <span>© 2026 UPOwork · UPOTec</span>
-    </div>
-  </footer>
+  <footer><span>© 2026 UPOwork · UPOTec</span></footer>
 </body>
 </html>
