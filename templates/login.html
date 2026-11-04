@@ -14,29 +14,25 @@
   </header>
 
   <main class="login-main section-shell">
-    <div class="login-heading">
-      <h1>Bienvenido de nuevo</h1>
-      <p>Ingresa tus credenciales para acceder a tu cuenta</p>
+    <div class="login-card">
+      <h1>Iniciar sesión</h1>
+      <form id="login-form" class="login-form">
+        <input type="hidden" name="role" value="student">
+        
+        <label>Correo electrónico</label>
+        <input type="email" name="email" required>
+
+        <label>Contraseña</label>
+        <input type="password" name="password" required>
+
+        <button type="submit" class="button login-button">Entrar</button>
+      </form>
+
+      <p class="login-help">¿No tienes cuenta? <a href="/perfil">Regístrate aquí</a></p>
+      <p class="login-help"><a href="/">← Volver al inicio</a></p>
     </div>
-
-    {% if error %}
-    <p class="error-msg">{{ error }}</p>
-    {% endif %}
-
-    <form class="login-form" method="post">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      
-      <label>Correo electrónico</label>
-      <input type="email" name="correo" required>
-
-      <label>Contraseña</label>
-      <input type="password" name="contrasena" required>
-
-      <button type="submit" class="btn-primary">Entrar</button>
-    </form>
-
-    <p class="login-helper">¿No tienes cuenta? <a href="/registro-personal">Regístrate aquí</a></p>
-    <p class="login-helper"><a href="/">← Volver al inicio</a></p>
   </main>
+
+  <script src="/static/script.js"></script>
 </body>
 </html>
