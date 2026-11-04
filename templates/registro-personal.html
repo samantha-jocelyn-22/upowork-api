@@ -3,13 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Registro de personal autorizado UPOwork.">
   <title>UPOwork | Registro de personal</title>
-  <link rel="stylesheet" href="/static/styles.css">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
 </head>
 <body class="login-page">
   <header class="site-header">
     <a class="brand" href="/">
-      <img class="brand-logo" src="/static/upowork-logo.svg" alt="UPOwork">
+      <img class="brand-logo" src="/upowork-logo.svg" alt="UPOwork">
     </a>
     <a class="text-link" href="/login">Iniciar sesión</a>
   </header>
@@ -18,28 +22,26 @@
     <div class="login-heading">
       <p class="eyebrow">Acceso para personal autorizado</p>
       <h1>Cuenta de<br><em>personal UPOTec.</em></h1>
-      <p>El código de invitación confirma que tienes permiso para gestionar ofertas y perfiles.</p>
+      <p>El código de invitación confirma que tienes permiso para administrar ofertas y perfiles.</p>
     </div>
 
-    <form class="login-form" method="post" action="/api/registro">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-      
+    <form action="/registro-personal" method="POST" class="form-box">
       <label>Nombre completo</label>
-      <input type="text" name="nombre" required>
+      <input type="text" name="nombre" required class="form-input">
 
       <label>Correo institucional</label>
-      <input type="email" name="email" required>
+      <input type="email" name="email" required class="form-input">
 
-      <label>Carrera</label>
-      <input type="text" name="carrera" required>
+      <label>Código de invitación</label>
+      <input type="text" name="codigo" required class="form-input">
 
       <label>Contraseña</label>
-      <input type="password" name="contrasena" required>
+      <input type="password" name="password" required class="form-input">
 
       <button type="submit" class="btn-primary">Crear cuenta</button>
     </form>
 
-    <p class="login-helper">¿Ya tienes cuenta? <a href="/login">Inicia sesión</a></p>
+    <p class="login-helper">¿Ya tienes cuenta? <a href="/login">Inicia sesión aquí</a></p>
   </main>
 </body>
 </html>
