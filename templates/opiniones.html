@@ -5,9 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Consulta y comparte opiniones sobre el servicio UPOwork.">
   <title>UPOwork | Opiniones del servicio</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Outfit:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
@@ -19,47 +16,47 @@
     <nav class="main-nav" aria-label="Navegación principal">
       <a href="/">Inicio</a>
       <a href="/vacantes">Vacantes</a>
-      <a href="/consejos">Consejos</a>
-      <a href="/opiniones" class="active">Opiniones</a>
       <a href="/empresas">Empresas</a>
-      <a href="/login" class="nav-cta">Iniciar sesión</a>
+      <a href="/consejos">Consejos</a>
+      <a class="active" href="/opiniones">Opiniones</a>
     </nav>
+    <a class="button button-small header-cta" href="/login">Iniciar sesión <span>→</span></a>
   </header>
 
   <main class="section-shell">
-    <h1>Opiniones del servicio</h1>
-    <p>Espacio para compartir experiencias y comentarios sobre UPOwork.</p>
-
-    <div class="opiniones-grid">
-      <div class="opinion-card">
-        <p class="opinion-text">"Excelente plataforma para conectar con oportunidades reales."</p>
-        <p class="opinion-author">— Estudiante UPO</p>
-      </div>
-      <div class="opinion-card">
-        <p class="opinion-text">"Muy útil para encontrar prácticas cerca de la zona."</p>
-        <p class="opinion-author">— Alumno de Ingeniería</p>
-      </div>
+    <div class="page-title">
+      <p class="eyebrow">Comunidad</p>
+      <h1>Lo que dicen <em>nuestros compañeros.</em></h1>
+      <p>Conoce las experiencias de quienes ya han usado UPOwork y comparte tu propia opinión para ayudarnos a mejorar.</p>
     </div>
 
-    <h2>Deja tu opinión</h2>
-    <form action="/opiniones" method="POST" class="form-box">
-      <textarea name="comentario" rows="4" placeholder="Escribe aquí tu opinión..." required class="form-input"></textarea>
-      <button type="submit" class="btn-primary">Enviar opinión</button>
-    </form>
+    <section class="opiniones-lista">
+      <h2>Comentarios recibidos</h2>
+      <div id="lista-opiniones">
+        <p class="empty-state">Aún no hay opiniones. ¡Sé el primero en compartir la tuya!</p>
+      </div>
+    </section>
+
+    <section class="form-opiniones">
+      <h2>Comparte tu experiencia</h2>
+      <form action="/opiniones" method="POST">
+        <label for="comentario">Tu comentario:</label>
+        <textarea id="comentario" name="comentario" rows="5" placeholder="Escribe aquí tu opinión sobre UPOwork..." required></textarea>
+        <button type="submit" class="button">Enviar opinión <span>→</span></button>
+      </form>
+    </section>
   </main>
 
-  <footer class="site-footer">
-    <p>&copy; 2026 UPOwork — Universidad Politécnica de Otzolotepec</p>
+  <footer>
+    <div class="section-shell footer-inner">
+      <a class="brand" href="/">
+        <img class="brand-logo" src="/static/upowork-logo.svg" alt="UPOwork">
+      </a>
+      <p>Diseñado para ayudar a nuestros compañeros a crecer de manera laboral.</p>
+      <span>© 2026 UPOwork · UPOTec</span>
+    </div>
   </footer>
 
-  <script>
-    const btn = document.querySelector('.menu-toggle');
-    const nav = document.querySelector('.main-nav');
-    btn.addEventListener('click', () => {
-      const open = btn.getAttribute('aria-expanded') === 'true';
-      btn.setAttribute('aria-expanded', String(!open));
-      nav.classList.toggle('open');
-    });
-  </script>
+  <script src="/static/script.js"></script>
 </body>
 </html>
