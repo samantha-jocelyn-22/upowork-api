@@ -13,7 +13,6 @@ from werkzeug.utils import secure_filename
 
 BASE_DIR = Path(__file__).resolve().parent
 
-# Para Render usamos el disco persistente, en local la carpeta del proyecto
 DATABASE = Path(os.environ.get("UPOWORK_DATABASE", str(BASE_DIR / "upotec.db")))
 UPLOADS = Path(os.environ.get("UPOWORK_UPLOADS", str(BASE_DIR / "uploads")))
 DATABASE.parent.mkdir(parents=True, exist_ok=True)
@@ -87,14 +86,24 @@ def index():
     return render_template("index.html")
 
 
-@app.get("/opiniones")
-def opiniones():
-    return render_template("opiniones.html")
-
-
 @app.get("/registro-personal")
 def registro_personal():
     return render_template("registro-personal.html")
+
+
+@app.get("/perfil")
+def perfil():
+    return render_template("registro-personal.html")
+
+
+@app.get("/registrar")
+def registrar():
+    return render_template("registro-personal.html")
+
+
+@app.get("/opiniones")
+def opiniones():
+    return render_template("opiniones.html")
 
 
 @app.get("/login")
@@ -135,19 +144,6 @@ def preguntas_frecuentes():
 @app.get("/contacto")
 def contacto():
     return render_template("contacto.html")
-
-
-@app.get("/perfil")
-def perfil():
-    return render_template("registro-personal.html")
-
-@app.route('/registrar')
-def registrar():
-    return render_template('registrar.html')
-
-@app.route('/opiniones')
-def opiniones():
-    return render_template('opiniones.html')
 
 
 # ========== API ==========
