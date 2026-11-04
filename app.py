@@ -141,6 +141,14 @@ def contacto():
 def perfil():
     return render_template("registro-personal.html")
 
+@app.route('/registrar')
+def registrar():
+    return render_template('registrar.html')
+
+@app.route('/opiniones')
+def opiniones():
+    return render_template('opiniones.html')
+
 
 # ========== API ==========
 @app.get("/api/csrf-token")
