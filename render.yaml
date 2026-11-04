@@ -5,7 +5,7 @@ services:
     plan: starter
     region: ohio
     buildCommand: pip install -r requirements.txt
-    startCommand: python reset_demo_data.py && gunicorn --workers 1 --threads 4 --timeout 120 app:app
+    startCommand: python reset_demo_data.py && gunicorn --workers 1 --threads 4 --timeout 120 server:app
     disk:
       name: upowork-data
       mountPath: /var/data
@@ -27,3 +27,5 @@ services:
         sync: false
       - key: UPOWORK_ADMIN_NAME
         value: Coordinación UPOwork
+      - key: UPOWORK_STAFF_INVITE_CODE
+        sync: false
