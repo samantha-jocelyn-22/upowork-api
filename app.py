@@ -6,7 +6,7 @@ import secrets
 from datetime import datetime
 from functools import wraps
 
-from flask import Flask, jsonify, request, session, render_template, send_from_directory, redirect, url_for
+from flask import Flask, jsonify, request, session, render_template, send_from_directory, redirect
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -22,16 +22,12 @@ app.config["SESSION_COOKIE_SECURE"] = os.environ.get("UPOWORK_HTTPS", "false").l
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
+# ✅ Tu carpeta se llama "template" — así se lo decimos a Flask
+app.template_folder = "template"
+app.static_folder = "static"
+
 
 # ========== SERVIR ARCHIVOS ESTÁTICOS ==========
-@app.route('/styles.css')
-def serve_css():
-    return send_from_directory('.', 'styles.css')
-
-@app.route('/upowork-logo.svg')
-def serve_logo():
-    return send_from_directory('.', 'upowork-logo.svg')
-
 @app.route('/static/<path:filename>')
 def serve_static(filename):
     return send_from_directory('static', filename)
@@ -66,16 +62,6 @@ def init_db():
                 approval_status TEXT NOT NULL DEFAULT 'pending',
                 approval_note TEXT
             );
-            CREATE TABLE IF NOT EXISTS feedback (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                user_id INTEGER NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
-                rating INTEGER NOT NULL CHECK(rating BETWEEN 1 AND 5),
-                worked TEXT NOT NULL,
-                comment TEXT NOT NULL,
-                show_name INTEGER NOT NULL DEFAULT 0,
-                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-            );
         """)
 
 
@@ -97,6 +83,35 @@ def index():
     return render_template("index.html")
 
 
+@app.get("/login")
+def login_page():
+    return render_template("login.html")
+
+
+@app.post("/login")
+def login_post():
+    email = request.form.get("email", "").strip().lower()
+    password = request.form.get("password", "")
+    
+    from werkzeug.security import check_password_hash
+    with get_db() as conn:
+        user = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
+    
+    if not user or not check_password_hash(user["password_hash"], password):
+        return render_template("login.html", error="Correo o contraseña incorrectos")
+    
+    session["user_id"] = user["id"]
+    session["name"] = user["name"]
+    session["role"] = user["role"]
+    return redirect("/")
+
+
+@app.post("/api/logout")
+def logout():
+    session.clear()
+    return redirect("/")
+
+
 @app.get("/registro-personal")
 def registro_personal():
     return render_template("registro-personal.html")
@@ -104,12 +119,12 @@ def registro_personal():
 
 @app.post("/registro-personal")
 def registro_personal_post():
+    from werkzeug.security import generate_password_hash
     nombre = request.form.get("nombre", "").strip()
     email = request.form.get("email", "").strip().lower()
     codigo = request.form.get("codigo", "").strip()
     password = request.form.get("password", "")
     
-    # Código de invitación (puedes cambiarlo al que tú quieras)
     CODIGO_AUTORIZADO = "UPOADMIN2026"
     
     if codigo != CODIGO_AUTORIZADO:
@@ -129,14 +144,7 @@ def registro_personal_post():
     except sqlite3.IntegrityError:
         return render_template("registro-personal.html", error="Este correo ya está registrado")
     
-    return redirect("/login?registro=exitoso")
-
-
-@app.get("/perfil")
-def perfil():
-    if "user_id" not in session:
-        return redirect("/login")
-    return render_template("perfil.html", nombre=session.get("name"), rol=session.get("role"))
+    return redirect("/login")
 
 
 @app.get("/opiniones")
@@ -148,31 +156,8 @@ def opiniones():
 def opiniones_guardar():
     comentario = request.form.get("comentario", "").strip()
     if comentario:
-        # Aquí se puede guardar después en la base de datos
         pass
     return redirect("/opiniones")
-
-
-@app.get("/login")
-def login_page():
-    return render_template("login.html")
-
-
-@app.post("/login")
-def login_post():
-    email = request.form.get("email", "").strip().lower()
-    password = request.form.get("password", "")
-    
-    with get_db() as conn:
-        user = conn.execute("SELECT * FROM users WHERE email = ?", (email,)).fetchone()
-    
-    if not user or not check_password_hash(user["password_hash"], password):
-        return render_template("login.html", error="Correo o contraseña incorrectos")
-    
-    session["user_id"] = user["id"]
-    session["name"] = user["name"]
-    session["role"] = user["role"]
-    return redirect("/")
 
 
 @app.get("/consejos")
@@ -190,32 +175,13 @@ def empresas():
     return render_template("empresas.html")
 
 
-@app.get("/sugerencias")
-def sugerencias():
-    return render_template("sugerencias.html")
+@app.get("/perfil")
+def perfil():
+    if "user_id" not in session:
+        return redirect("/login")
+    return render_template("perfil.html", nombre=session.get("name"), rol=session.get("role"))
 
 
-@app.get("/aviso-privacidad")
-def aviso_privacidad():
-    return render_template("aviso-privacidad.html")
-
-
-@app.get("/terminos-de-uso")
-def terminos_de_uso():
-    return render_template("terminos-de-uso.html")
-
-
-@app.get("/preguntas-frecuentes")
-def preguntas_frecuentes():
-    return render_template("preguntas-frecuentes.html")
-
-
-@app.get("/contacto")
-def contacto():
-    return render_template("contacto.html")
-
-
-# ========== API ==========
 @app.get("/api/csrf-token")
 def csrf_token():
     if "csrf_token" not in session:
@@ -223,14 +189,9 @@ def csrf_token():
     return jsonify({"csrf_token": session["csrf_token"]})
 
 
-@app.post("/api/logout")
-def logout():
-    session.clear()
-    return redirect("/")
-
-
 @app.post("/api/registro")
 def registro():
+    from werkzeug.security import generate_password_hash
     nombre = request.form.get("nombre", "").strip()
     email = request.form.get("email", "").strip().lower()
     carrera = request.form.get("carrera", "").strip()
@@ -251,7 +212,7 @@ def registro():
     if cv_file and cv_file.filename:
         if not cv_file.filename.lower().endswith(".pdf"):
             return jsonify({"error": "El CV debe estar en formato PDF"}), 400
-        cv_filename = f"{uuid.uuid4().hex}_{secure_filename(cv_file.filename)}"
+        cv_filename = f"{uuid.uuid4().hex}_{cv_file.filename}"
         cv_file.save(UPLOADS / cv_filename)
     
     password_hash = generate_password_hash(contrasena)
@@ -270,47 +231,6 @@ def registro():
         return jsonify({"error": "Este correo ya está registrado"}), 400
     
     return jsonify({"mensaje": "Registro exitoso"})
-
-
-@app.post("/api/feedback")
-@login_required
-def guardar_feedback():
-    user_id = session["user_id"]
-    calificacion = request.form.get("calificacion", type=int)
-    funcionamiento = request.form.get("funcionamiento", "").strip()
-    comentario = request.form.get("comentario", "").strip()
-    mostrar_nombre = 1 if request.form.get("mostrar_nombre") == "on" else 0
-    
-    if not calificacion or not (1 <= calificacion <= 5):
-        return jsonify({"error": "Calificación inválida"}), 400
-    if not funcionamiento or not comentario:
-        return jsonify({"error": "Completa todos los campos"}), 400
-    
-    ahora = datetime.now().isoformat()
-    with get_db() as conn:
-        existing = conn.execute("SELECT 1 FROM feedback WHERE user_id = ?", (user_id,)).fetchone()
-        if existing:
-            conn.execute("""
-                UPDATE feedback SET rating=?, worked=?, comment=?, show_name=?, updated_at=? WHERE user_id=?
-            """, (calificacion, funcionamiento, comentario, mostrar_nombre, ahora, user_id))
-        else:
-            conn.execute("""
-                INSERT INTO feedback (user_id, rating, worked, comment, show_name, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            """, (user_id, calificacion, funcionamiento, comentario, mostrar_nombre, ahora, ahora))
-    
-    return jsonify({"mensaje": "Gracias por tu opinión"})
-
-
-@app.get("/api/opiniones-publicas")
-def opiniones_publicas():
-    with get_db() as conn:
-        opiniones = conn.execute("""
-            SELECT f.rating, f.comment, f.created_at,
-                   CASE WHEN f.show_name = 1 THEN u.name ELSE 'Anónimo' END AS autor
-            FROM feedback f JOIN users u ON f.user_id = u.id ORDER BY f.created_at DESC
-        """).fetchall()
-    return jsonify([dict(op) for op in opiniones])
 
 
 if __name__ == "__main__":
