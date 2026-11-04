@@ -23,7 +23,7 @@ app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
 # ✅ Tu carpeta se llama "template" — así se lo decimos a Flask
-app.template_folder = "template"
+app.template_folder = "templates"
 app.static_folder = "static"
 
 
