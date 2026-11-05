@@ -78,7 +78,7 @@ def init_db():
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
             );
         """)
-        # Legacy repository DB has users/students already; keep its records intact.
+        # Migrate legacy tables in place; do not discard existing records.
         student_columns = {row[1] for row in conn.execute("PRAGMA table_info(students)")}
         if "privacy_consent" not in student_columns:
             conn.execute("ALTER TABLE students ADD COLUMN privacy_consent INTEGER NOT NULL DEFAULT 0")
@@ -86,6 +86,32 @@ def init_db():
             conn.execute("ALTER TABLE students ADD COLUMN approval_status TEXT NOT NULL DEFAULT 'pending'")
         if "approval_note" not in student_columns:
             conn.execute("ALTER TABLE students ADD COLUMN approval_note TEXT")
+
+        # Older deployed databases may have a vacancies table without the fields
+        # used by the current publication endpoint. CREATE TABLE IF NOT EXISTS does
+        # not update an existing table, so add missing columns without deleting rows.
+        vacancy_columns = {row[1] for row in conn.execute("PRAGMA table_info(vacancies)")}
+        vacancy_migrations = {
+            "company_name": "TEXT NOT NULL DEFAULT ''",
+            "title": "TEXT NOT NULL DEFAULT ''",
+            "description": "TEXT NOT NULL DEFAULT ''",
+            "requirements": "TEXT DEFAULT ''",
+            "source_url": "TEXT NOT NULL DEFAULT ''",
+            "opportunity_type": "TEXT DEFAULT 'empleo'",
+            "career": "TEXT DEFAULT ''",
+            "location": "TEXT DEFAULT ''",
+            "mode": "TEXT DEFAULT 'presencial'",
+            "deadline": "TEXT DEFAULT ''",
+            "schedule": "TEXT DEFAULT ''",
+            "support": "TEXT DEFAULT ''",
+            "status": "TEXT NOT NULL DEFAULT 'active'",
+            "created_by": "INTEGER",
+            "created_at": "TEXT NOT NULL DEFAULT ''",
+        }
+        for column, definition in vacancy_migrations.items():
+            if column not in vacancy_columns:
+                conn.execute(f'ALTER TABLE vacancies ADD COLUMN "{column}" {definition}')
+        conn.execute("UPDATE vacancies SET created_at=CURRENT_TIMESTAMP WHERE created_at IS NULL OR created_at=''")
         conn.commit()
     ensure_admin_user()
 
@@ -384,9 +410,13 @@ def create_vacancy():
     company, title, source, description = (str(data.get(k) or "").strip() for k in ("company_name", "title", "source_url", "description"))
     if not all((company, title, source, description)) or not safe_url(source):
         return jsonify({"error": "Empresa, puesto, descripción y enlace http(s) válido son obligatorios."}), 400
-    with get_db() as conn:
-        cursor = conn.execute("""INSERT INTO vacancies (company_name,title,description,requirements,source_url,opportunity_type,career,location,mode,deadline,schedule,support,created_by)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""", (company[:160], title[:200], description[:3000], str(data.get("requirements") or "")[:3000], source[:2048], str(data.get("opportunity_type") or "empleo")[:80], str(data.get("career") or "")[:160], str(data.get("location") or "")[:160], str(data.get("mode") or "presencial")[:40], str(data.get("deadline") or "")[:20], str(data.get("schedule") or "")[:160], str(data.get("support") or "")[:160], session["user_id"]))
+    try:
+        with get_db() as conn:
+            cursor = conn.execute("""INSERT INTO vacancies (company_name,title,description,requirements,source_url,opportunity_type,career,location,mode,deadline,schedule,support,created_by)
+                VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)""", (company[:160], title[:200], description[:3000], str(data.get("requirements") or "")[:3000], source[:2048], str(data.get("opportunity_type") or "empleo")[:80], str(data.get("career") or "")[:160], str(data.get("location") or "")[:160], str(data.get("mode") or "presencial")[:40], str(data.get("deadline") or "")[:20], str(data.get("schedule") or "")[:160], str(data.get("support") or "")[:160], session["user_id"]))
+    except sqlite3.Error:
+        app.logger.exception("Vacancy creation failed")
+        return jsonify({"error": "No se pudo guardar la vacante por un problema de base de datos. El equipo administrador debe revisar los logs de Render."}), 500
     return jsonify({"message": "Oportunidad publicada", "id": cursor.lastrowid}), 201
 
 
