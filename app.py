@@ -222,29 +222,32 @@ def perfil_page():
 
 @app.route("/registro-personal", methods=["GET", "POST"])
 def registro_personal_page():
-    # Asegurarse de que exista el token CSRF ANTES de mostrar la página
+    # Asegurar que exista el token CSRF
     if "csrf_token" not in session:
         session["csrf_token"] = secrets.token_urlsafe(32)
     
     if request.method == "POST":
-        # Procesar el formulario de registro de personal
         nombre = request.form.get("nombre", "").strip()
         email = request.form.get("email", "").strip().lower()
         password = request.form.get("password", "")
         codigo = request.form.get("codigo", "").strip()
         
-        # Validar código de invitación
         codigo_valido = os.environ.get("UPOWORK_STAFF_INVITE_CODE", "")
         if not codigo_valido or codigo != codigo_valido:
-            return render_template("registro-personal.html", error="Código de invitación incorrecto.")
+            return render_template("registro-personal.html", 
+                                   error="Código de invitación incorrecto.",
+                                   csrf_token=session["csrf_token"])
         
-        # Validar campos
         if not all((nombre, email, password)):
-            return render_template("registro-personal.html", error="Todos los campos son obligatorios.")
-        if len(password) < 12:
-            return render_template("registro-personal.html", error="La contraseña debe tener al menos 12 caracteres.")
+            return render_template("registro-personal.html",
+                                   error="Todos los campos son obligatorios.",
+                                   csrf_token=session["csrf_token"])
         
-        # Crear usuario en la base de datos
+        if len(password) < 12:
+            return render_template("registro-personal.html",
+                                   error="La contraseña debe tener al menos 12 caracteres.",
+                                   csrf_token=session["csrf_token"])
+        
         try:
             with get_db() as conn:
                 conn.execute(
@@ -253,10 +256,12 @@ def registro_personal_page():
                 )
             return redirect("/login?registro=exitoso")
         except sqlite3.IntegrityError:
-            return render_template("registro-personal.html", error="Este correo ya está registrado.")
+            return render_template("registro-personal.html",
+                                   error="Este correo ya está registrado. Usa uno diferente.",
+                                   csrf_token=session["csrf_token"])
     
-    # Si es GET, solo mostramos el formulario
-    return render_template("registro-personal.html")
+    # GET — mostrar formulario
+    return render_template("registro-personal.html", csrf_token=session["csrf_token"])
 
 
 @app.get("/empresas")
