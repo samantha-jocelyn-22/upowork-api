@@ -108,13 +108,33 @@ def init_db():
             "created_by": "INTEGER",
             "created_at": "TEXT NOT NULL DEFAULT ''",
         }
-                for column, definition in vacancy_migrations.items():
+               # Older deployed databases may have a vacancies table without the fields
+        # used by the current publication endpoint. CREATE TABLE IF NOT EXISTS does
+        # not update an existing table, so add missing columns without deleting rows.
+        vacancy_columns = {row[1] for row in conn.execute("PRAGMA table_info(vacancies)")}
+        vacancy_migrations = {
+            "company_name": "TEXT NOT NULL DEFAULT ''",
+            "title": "TEXT NOT NULL DEFAULT ''",
+            "description": "TEXT NOT NULL DEFAULT ''",
+            "requirements": "TEXT DEFAULT ''",
+            "source_url": "TEXT NOT NULL DEFAULT ''",
+            "opportunity_type": "TEXT DEFAULT 'empleo'",
+            "career": "TEXT DEFAULT ''",
+            "location": "TEXT DEFAULT ''",
+            "mode": "TEXT DEFAULT 'presencial'",
+            "deadline": "TEXT DEFAULT ''",
+            "schedule": "TEXT DEFAULT ''",
+            "support": "TEXT DEFAULT ''",
+            "status": "TEXT NOT NULL DEFAULT 'active'",
+            "created_by": "INTEGER",
+            "created_at": "TEXT NOT NULL DEFAULT ''",
+        }
+        for column, definition in vacancy_migrations.items():
             if column not in vacancy_columns:
                 conn.execute(f'ALTER TABLE vacancies ADD COLUMN "{column}" {definition}')
         
-        # ===== SOLUCIÓN: Eliminar company_id si existe =====
+        # Eliminar columna company_id si existe (causa del error al publicar vacantes)
         if "company_id" in vacancy_columns:
-            # SQLite no permite DROP COLUMN directamente, así que recreamos la tabla sin esa columna
             conn.executescript("""
                 BEGIN TRANSACTION;
                 ALTER TABLE vacancies RENAME TO vacancies_old;
@@ -141,8 +161,6 @@ def init_db():
                 DROP TABLE vacancies_old;
                 COMMIT;
             """)
-            print("✅ Columna company_id eliminada de la tabla vacancies")
-        # ==================================================
         
         conn.execute("UPDATE vacancies SET created_at=CURRENT_TIMESTAMP WHERE created_at IS NULL OR created_at=''")
         conn.commit()
