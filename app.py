@@ -128,6 +128,7 @@ def ensure_admin_user():
                 (os.environ.get("UPOWORK_ADMIN_NAME", "Coordinación UPOwork"), email, generate_password_hash(password)),
             )
 
+
 init_db()
 
 
@@ -266,11 +267,9 @@ def contacto_page():
     return render_template("contacto.html")
 
 
-@app.get("/registro-personal")
-def registro_personal_page():
-    if "csrf_token" not in session:
-        session["csrf_token"] = secrets.token_urlsafe(32)
-    return render_template("registro-personal.html", csrf_token=session["csrf_token"])
+@app.get("/empresa-registro")
+def empresa_registro_page():
+    return render_template("empresa-registro.html")
 
 
 # Authentication / session APIs
@@ -654,6 +653,7 @@ def root_logo():
 def file_too_large(_error):
     message = "El archivo supera el límite de 5 MB."
     return (jsonify({"error": message}), 413) if request.path.startswith("/api/") else (message, 413)
+
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=os.environ.get("UPOWORK_ENV") != "production")
