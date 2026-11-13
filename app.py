@@ -227,8 +227,35 @@ def registro_personal_page():
         session["csrf_token"] = secrets.token_urlsafe(32)
     
     if request.method == "POST":
-        # ... todo el código del POST que ya tienes ...
+        # Procesar el formulario de registro de personal
+        nombre = request.form.get("nombre", "").strip()
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "")
+        codigo = request.form.get("codigo", "").strip()
+        
+        # Validar código de invitación
+        codigo_valido = os.environ.get("UPOWORK_STAFF_INVITE_CODE", "")
+        if not codigo_valido or codigo != codigo_valido:
+            return render_template("registro-personal.html", error="Código de invitación incorrecto.")
+        
+        # Validar campos
+        if not all((nombre, email, password)):
+            return render_template("registro-personal.html", error="Todos los campos son obligatorios.")
+        if len(password) < 12:
+            return render_template("registro-personal.html", error="La contraseña debe tener al menos 12 caracteres.")
+        
+        # Crear usuario en la base de datos
+        try:
+            with get_db() as conn:
+                conn.execute(
+                    "INSERT INTO users (name, email, password_hash, role) VALUES (?, ?, ?, 'teacher')",
+                    (nombre, email, generate_password_hash(password))
+                )
+            return redirect("/login?registro=exitoso")
+        except sqlite3.IntegrityError:
+            return render_template("registro-personal.html", error="Este correo ya está registrado.")
     
+    # Si es GET, solo mostramos el formulario
     return render_template("registro-personal.html")
 
 
