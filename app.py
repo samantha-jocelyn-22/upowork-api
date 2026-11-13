@@ -377,4 +377,7 @@ def csrf_token_endpoint():
 
 def authenticate(email, password, selected_role=None):
     with get_db() as conn:
-        user = conn.execute
+        user = conn.execute("SELECT * FROM users WHERE lower(email)=?", (email.strip().lower(),)).fetchone()
+    if not user or not check_password_hash(user["password_hash"], password):
+        return None
+    if selected_role and selected_role != user
