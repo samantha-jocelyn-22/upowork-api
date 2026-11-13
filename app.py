@@ -89,7 +89,6 @@ def init_db():
             );
         """)
         
-        # Migraciones para students
         student_columns = {row[1] for row in conn.execute("PRAGMA table_info(students)")}
         if "privacy_consent" not in student_columns:
             conn.execute("ALTER TABLE students ADD COLUMN privacy_consent INTEGER NOT NULL DEFAULT 0")
@@ -98,10 +97,8 @@ def init_db():
         if "approval_note" not in student_columns:
             conn.execute("ALTER TABLE students ADD COLUMN approval_note TEXT")
 
-        # Migraciones para vacancies
         vacancy_columns = {row[1] for row in conn.execute("PRAGMA table_info(vacancies)")}
         
-        # Eliminar company_id si existe
         if "company_id" in vacancy_columns:
             try:
                 conn.executescript("""
@@ -150,7 +147,6 @@ def init_db():
             except Exception:
                 conn.rollback()
         
-        # Agregar columnas que falten
         vacancy_migrations = {
             "company_name": "TEXT NOT NULL DEFAULT ''",
             "title": "TEXT NOT NULL DEFAULT ''",
@@ -373,10 +369,12 @@ def empresa_registro_page():
 
 # Authentication / session APIs
 @app.get("/api/csrf-token")
-def csrf_token():
+def csrf_token_endpoint():
     if "csrf_token" not in session:
         session["csrf_token"] = secrets.token_urlsafe(32)
     return jsonify({"csrf_token": session["csrf_token"]})
 
 
-def authenticate
+def authenticate(email, password, selected_role=None):
+    with get_db() as conn:
+        user = conn.execute
