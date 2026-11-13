@@ -266,9 +266,11 @@ def contacto_page():
     return render_template("contacto.html")
 
 
-@app.get("/empresa-registro")
-def empresa_registro_page():
-    return render_template("empresa-registro.html")
+@app.get("/registro-personal")
+def registro_personal_page():
+    if "csrf_token" not in session:
+        session["csrf_token"] = secrets.token_urlsafe(32)
+    return render_template("registro-personal.html", csrf_token=session["csrf_token"])
 
 
 # Authentication / session APIs
