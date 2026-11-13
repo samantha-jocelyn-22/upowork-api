@@ -655,8 +655,5 @@ def file_too_large(_error):
     message = "El archivo supera el límite de 5 MB."
     return (jsonify({"error": message}), 413) if request.path.startswith("/api/") else (message, 413)
 
-# app.py
-import staff_registration  # noqa: F401
-
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=os.environ.get("UPOWORK_ENV") != "production")
